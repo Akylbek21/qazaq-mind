@@ -17,3 +17,4 @@ npm run dev
 ## Құрылым
 - `src/components/*` — барлық секциялар мен модалдар.
 - Tailwind — CDN (`index.html`) арқылы.
+# qazaq-mind
