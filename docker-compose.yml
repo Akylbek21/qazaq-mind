@@ -1,0 +1,8 @@
+services:
+  qazaq-mind:
+    build: .
+    image: qazaq-mind:latest
+    container_name: qazaq-mind
+    ports:
+      - "9011:80"
+    restart: unless-stopped
