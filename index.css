@@ -1,0 +1,13 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Қосымша (қалауыңша) */
+html, body, #root { height: 100%; }
+.section-bg-ornament {
+  background-image:
+    radial-gradient(40rem 20rem at 120% -10%, rgba(31,122,140,0.10), transparent),
+    radial-gradient(30rem 16rem at -10% 110%, rgba(255,213,128,0.15), transparent);
+  background-repeat: no-repeat;
+}
