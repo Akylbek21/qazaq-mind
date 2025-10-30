@@ -2,9 +2,26 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm i --no-audit --no-fund
+
+RUN if [ -f package-lock.json ]; then \
+      npm ci --no-audit --no-fund; \
+    else \
+      npm i --no-audit --no-fund; \
+    fi
 
 COPY . .
+
+RUN rm -rf node_modules .vite dist
+
+RUN node -e "try{require.resolve('react-router-dom')}catch(e){process.exit(1)}" \
+  || npm i react-router-dom@^6 --save --no-audit --no-fund
+
+RUN if [ -f package-lock.json ]; then \
+      npm ci --no-audit --no-fund; \
+    else \
+      npm i --no-audit --no-fund; \
+    fi
+
 RUN npm run build
 
 FROM nginx:1.27-alpine
