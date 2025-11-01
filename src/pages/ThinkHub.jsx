@@ -1,23 +1,30 @@
 // src/pages/ThinkHub.jsx
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   fetchSQBooks,
   fetchSQBookQuestions,
   submitSQAnswer,
-  fetchSQBookSummary,
+  fetchSQSummary,
   fromIndex,
 } from "@/api/sq";
 
 /* ---------- мини-утиль ---------- */
 const Progress = ({ value }) => (
   <div className="w-full bg-slate-200/70 rounded-full h-2.5 overflow-hidden">
-    <div className="h-2.5 rounded-full bg-gradient-to-r from-[#1F7A8C] via-[#1aa6b5] to-[#0ea5a5]" style={{ width: `${value}%` }} />
+    <div
+      className="h-2.5 rounded-full bg-gradient-to-r from-[#1F7A8C] via-[#1aa6b5] to-[#0ea5a5]"
+      style={{ width: `${value}%` }}
+    />
   </div>
 );
 
 const Badge = ({ ok }) => (
-  <span className={`ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${ok ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+  <span
+    className={`ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
+      ok ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+    }`}
+  >
     {ok ? "Дұрыс" : "Бұрыс"}
   </span>
 );
@@ -37,8 +44,8 @@ export default function ThinkHub() {
   // Прохождение теста
   const [phase, setPhase] = React.useState("catalog"); // catalog | quiz | result
   const [step, setStep] = React.useState(0);
-  const [answers, setAnswers] = React.useState({});     // qId -> 'A'|'B'|'C'|'D'
-  const [results, setResults] = React.useState({});     // qId -> {correct:boolean}
+  const [answers, setAnswers] = React.useState({}); // qId -> 'A'|'B'|'C'|'D'
+  const [results, setResults] = React.useState({}); // qId -> {correct:boolean}
   const [submitting, setSubmitting] = React.useState(false);
 
   // Итог от сервера
@@ -47,7 +54,8 @@ export default function ThinkHub() {
 
   // Загрузка книг
   const loadBooks = async () => {
-    setLoadingBooks(true); setBooksErr("");
+    setLoadingBooks(true);
+    setBooksErr("");
     try {
       const list = await fetchSQBooks();
       setBooks(Array.isArray(list) ? list : []);
@@ -57,10 +65,13 @@ export default function ThinkHub() {
       setLoadingBooks(false);
     }
   };
-  React.useEffect(() => { loadBooks(); }, []);
+  React.useEffect(() => {
+    loadBooks();
+  }, []);
 
   // Начать тест по книге
   const startBook = async (b) => {
+    // сбрасываем состояния
     setBook(b);
     setPhase("quiz");
     setStep(0);
@@ -69,7 +80,8 @@ export default function ThinkHub() {
     setSummary(null);
     setSummaryErr("");
 
-    setLoadingQs(true); setQsErr("");
+    setLoadingQs(true);
+    setQsErr("");
     try {
       const qs = await fetchSQBookQuestions(b.id);
       setQuestions(qs);
@@ -87,6 +99,7 @@ export default function ThinkHub() {
     if (!questions[qIndex]) return;
     const q = questions[qIndex];
     const letter = fromIndex(choiceIndex); // A/B/C/D
+    if (!letter) return;
 
     // локально фиксируем выбор
     setAnswers((prev) => ({ ...prev, [q.id]: letter }));
@@ -97,21 +110,51 @@ export default function ThinkHub() {
       const correct = !!res?.correct; // сервер – источник истины
       setResults((prev) => ({ ...prev, [q.id]: { correct } }));
     } catch (e) {
-      // Если ошибка сети/403 и т.п. — покажем как неправильный и дадим повторить выбор
-      setResults((prev) => ({ ...prev, [q.id]: { correct: false, error: e?.message } }));
+      // Если ошибка сети/403 — покажем как неправильный и сохраним текст ошибки
+      setResults((prev) => ({
+        ...prev,
+        [q.id]: { correct: false, error: e?.message },
+      }));
     } finally {
       setSubmitting(false);
     }
   };
 
+  // Горячие клавиши: 1..4 — выбор, Enter — далее
+  React.useEffect(() => {
+    if (phase !== "quiz") return;
+    const handler = (e) => {
+      if (!questions[step]) return;
+      if (e.key >= "1" && e.key <= "4") {
+        const idx = Number(e.key) - 1;
+        if (questions[step]?.options?.[idx] != null) onChoose(step, idx);
+      } else if (e.key === "Enter") {
+        // если выбран ответ — перейти к следующему
+        const qid = questions[step]?.id;
+        if (qid && answers[qid]) {
+          if (step < questions.length - 1) setStep((s) => s + 1);
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, step, questions, answers]);
+
   // Завершение: вытягиваем summary
   const finish = async () => {
     if (!book) return;
     setPhase("result");
-    setSummary(null); setSummaryErr("");
+    setSummary(null);
+    setSummaryErr("");
     try {
-      const s = await fetchSQBookSummary(book.id);
-      setSummary(s);
+      const s = await fetchSQSummary(book.id);
+      // нормализуем поля под ожидаемые карточки
+      const total =
+        Number(s?.total ?? questions.length) || questions.length || 0;
+      const correct = Number(s?.correct ?? s?.score ?? 0) || 0;
+      const points = Number(s?.points ?? correct) || 0;
+      setSummary({ total, correct, points });
     } catch (e) {
       setSummaryErr(e?.message || "Қорытындыны алу мүмкін болмады.");
     }
@@ -135,12 +178,16 @@ export default function ThinkHub() {
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-10">
-      <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-        className="text-3xl md:text-4xl font-extrabold text-slate-900">
+      <motion.h1
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-3xl md:text-4xl font-extrabold text-slate-900"
+      >
         Abai Insight (SQ) — <span className="text-[#f59e0b]">Server-based Quiz</span>
       </motion.h1>
       <p className="mt-2 text-slate-600">
-        Барлық сұрақтар мен тексеру — <b>серверден</b>. Таңдаған жауабыңыз әр сұрақта бірден жіберіледі.
+        Барлық сұрақтар мен тексеру — <b>серверден</b>. Таңдаған жауабыңыз әр
+        сұрақта бірден жіберіледі.
       </p>
 
       {/* КАТАЛОГ КНИГ */}
@@ -154,16 +201,25 @@ export default function ThinkHub() {
             >
               {loadingBooks ? "Жүктелуде…" : "Қайта жүктеу"}
             </button>
-            {booksErr && <span className="text-sm text-rose-600">{booksErr}</span>}
+            {booksErr && (
+              <span className="text-sm text-rose-600">{booksErr}</span>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {books.map((b) => (
-              <div key={b.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow">
+              <div
+                key={b.id}
+                className="rounded-2xl border border-slate-200 bg-white p-5 shadow"
+              >
                 <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-amber-100 to-orange-100 flex items-center justify-center text-xl">📘</div>
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-amber-100 to-orange-100 flex items-center justify-center text-xl">
+                    📘
+                  </div>
                   <div className="min-w-0">
-                    <h3 className="text-lg font-bold text-slate-900">{b.title}</h3>
+                    <h3 className="text-lg font-bold text-slate-900">
+                      {b.title}
+                    </h3>
                     <p className="text-xs text-slate-500">{b.author}</p>
                   </div>
                 </div>
@@ -178,7 +234,9 @@ export default function ThinkHub() {
               </div>
             ))}
             {!loadingBooks && !booksErr && books.length === 0 && (
-              <div className="rounded-xl border p-4 text-slate-500">Кітаптар жоқ.</div>
+              <div className="rounded-xl border p-4 text-slate-500">
+                Кітаптар жоқ.
+              </div>
             )}
           </div>
         </div>
@@ -188,31 +246,42 @@ export default function ThinkHub() {
       {phase === "quiz" && (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white/80 p-5 shadow">
           <div className="flex items-start gap-3">
-            <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center text-xl">📖</div>
+            <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center text-xl">
+              📖
+            </div>
             <div className="min-w-0">
               <h3 className="text-xl font-bold text-slate-900">{book?.title}</h3>
               <p className="text-xs text-slate-500">{book?.author}</p>
             </div>
-            <button onClick={restart} className="ml-auto rounded-xl border px-3 py-2 text-sm font-semibold">Кітаптарға оралу</button>
+            <button
+              onClick={restart}
+              className="ml-auto rounded-xl border px-3 py-2 text-sm font-semibold"
+            >
+              Кітаптарға оралу
+            </button>
           </div>
 
-          {loadingQs && <p className="mt-4 text-sm text-slate-500">Сұрақтар жүктелуде…</p>}
-          {qsErr && (
-            <div className="mt-4 text-sm text-rose-600">{qsErr}</div>
+          {loadingQs && (
+            <p className="mt-4 text-sm text-slate-500">Сұрақтар жүктелуде…</p>
           )}
+          {qsErr && <div className="mt-4 text-sm text-rose-600">{qsErr}</div>}
 
           {!loadingQs && !qsErr && total > 0 && current && (
             <>
               <div className="mt-4">
                 <Progress value={progress} />
                 <div className="mt-2 flex justify-between text-xs text-slate-500">
-                  <span>Сұрақ {step + 1} / {total}</span>
+                  <span>
+                    Сұрақ {step + 1} / {total}
+                  </span>
                   {submitting && <span>Жіберілуде…</span>}
                 </div>
               </div>
 
               <div className="mt-4">
-                <h4 className="text-lg font-bold text-slate-900">{current.prompt}</h4>
+                <h4 className="text-lg font-bold text-slate-900">
+                  {current.prompt}
+                </h4>
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
                   {current.options.map((opt, i) => {
                     const letter = fromIndex(i);
@@ -220,21 +289,31 @@ export default function ThinkHub() {
                     const res = results[current.id];
                     const judged = !!res;
                     const ok = res?.correct === true && chosen;
-                    const wrong = judged && chosen && !res.correct;
+                    const wrong = judged && chosen && !res?.correct;
 
                     return (
                       <button
                         key={`${current.id}-${letter}`}
                         onClick={() => onChoose(step, i)}
                         className={`text-left rounded-xl border-2 p-4 transition ${
-                          chosen ? "border-sky-600 bg-sky-50" : "border-slate-200 hover:border-sky-300 hover:bg-sky-50/40"
-                        } ${wrong ? "border-rose-300 bg-rose-50/50" : ""} ${ok ? "border-emerald-300 bg-emerald-50/60" : ""}`}
+                          chosen
+                            ? "border-sky-600 bg-sky-50"
+                            : "border-slate-200 hover:border-sky-300 hover:bg-sky-50/40"
+                        } ${wrong ? "border-rose-300 bg-rose-50/50" : ""} ${
+                          ok ? "border-emerald-300 bg-emerald-50/60" : ""
+                        }`}
                         disabled={submitting}
                       >
                         <div className="flex items-start gap-3">
-                          <div className={`mt-0.5 h-2.5 w-2.5 rounded-full ${chosen ? "bg-sky-600" : "bg-slate-300"}`} />
-                          <span className="text-slate-800"><b>{letter})</b> {opt}</span>
-                          {judged && chosen && <Badge ok={!!res.correct} />}
+                          <div
+                            className={`mt-0.5 h-2.5 w-2.5 rounded-full ${
+                              chosen ? "bg-sky-600" : "bg-slate-300"
+                            }`}
+                          />
+                          <span className="text-slate-800">
+                            <b>{letter})</b> {opt}
+                          </span>
+                          {judged && chosen && <Badge ok={!!res?.correct} />}
                         </div>
                       </button>
                     );
@@ -246,7 +325,11 @@ export default function ThinkHub() {
                 <button
                   onClick={() => setStep((s) => Math.max(0, s - 1))}
                   disabled={step === 0}
-                  className={`rounded-xl px-4 py-2 font-semibold border ${step === 0 ? "text-slate-400 border-slate-200 cursor-not-allowed" : "border-slate-300"}`}
+                  className={`rounded-xl px-4 py-2 font-semibold border ${
+                    step === 0
+                      ? "text-slate-400 border-slate-200 cursor-not-allowed"
+                      : "border-slate-300"
+                  }`}
                 >
                   ⟵ Артқа
                 </button>
@@ -254,7 +337,11 @@ export default function ThinkHub() {
                   <button
                     onClick={() => setStep((s) => Math.min(total - 1, s + 1))}
                     disabled={!answers[current.id]}
-                    className={`rounded-xl px-4 py-2 font-semibold ${!answers[current.id] ? "bg-slate-200 text-slate-500 cursor-not-allowed" : "bg-sky-600 text-white"}`}
+                    className={`rounded-xl px-4 py-2 font-semibold ${
+                      !answers[current.id]
+                        ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                        : "bg-sky-600 text-white"
+                    }`}
                   >
                     Келесі ⟶
                   </button>
@@ -263,13 +350,18 @@ export default function ThinkHub() {
                     onClick={finish}
                     disabled={Object.keys(answers).length < total}
                     className={`rounded-xl px-4 py-2 font-semibold ${
-                      Object.keys(answers).length < total ? "bg-slate-200 text-slate-500 cursor-not-allowed" : "bg-emerald-600 text-white"
+                      Object.keys(answers).length < total
+                        ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                        : "bg-emerald-600 text-white"
                     }`}
                   >
                     Тапсыру ✓
                   </button>
                 )}
               </div>
+              <p className="mt-2 text-xs text-slate-500">
+                Кеңес: 1–4 пернелерімен жауапты таңдауға, Enter — келесіге өтуге болады.
+              </p>
             </>
           )}
         </div>
@@ -279,16 +371,29 @@ export default function ThinkHub() {
       {phase === "result" && (
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow">
           <div className="flex items-start gap-3">
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-xl">🎉</div>
+            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-xl">
+              🎉
+            </div>
             <div className="min-w-0">
-              <h3 className="text-xl font-bold text-slate-900">Нәтиже — {book?.title}</h3>
+              <h3 className="text-xl font-bold text-slate-900">
+                Нәтиже — {book?.title}
+              </h3>
               <p className="text-xs text-slate-500">{book?.author}</p>
             </div>
-            <button onClick={restart} className="ml-auto rounded-xl border px-3 py-2 text-sm font-semibold">Кітаптарға оралу</button>
+            <button
+              onClick={restart}
+              className="ml-auto rounded-xl border px-3 py-2 text-sm font-semibold"
+            >
+              Кітаптарға оралу
+            </button>
           </div>
 
-          {!summary && !summaryErr && <p className="mt-3 text-sm text-slate-500">Қорытынды жүктелуде…</p>}
-          {summaryErr && <p className="mt-3 text-sm text-rose-600">{summaryErr}</p>}
+          {!summary && !summaryErr && (
+            <p className="mt-3 text-sm text-slate-500">Қорытынды жүктелуде…</p>
+          )}
+          {summaryErr && (
+            <p className="mt-3 text-sm text-rose-600">{summaryErr}</p>
+          )}
 
           {summary && (
             <>
@@ -316,13 +421,28 @@ export default function ThinkHub() {
                     return (
                       <div key={q.id} className="rounded-xl border p-4">
                         <div className="flex items-start gap-2">
-                          <span className="mt-0.5 text-sm font-semibold text-slate-500">{idx + 1}.</span>
+                          <span className="mt-0.5 text-sm font-semibold text-slate-500">
+                            {idx + 1}.
+                          </span>
                           <div className="flex-1">
-                            <p className="font-medium text-slate-900">{q.prompt} {res ? <Badge ok={!!res.correct} /> : null}</p>
+                            <p className="font-medium text-slate-900">
+                              {q.prompt} {res ? <Badge ok={!!res?.correct} /> : null}
+                            </p>
                             <p className="mt-1 text-sm">
                               Таңдалған: <b>{chosen ?? "—"}</b>
-                              {q.correctLetter ? <> | Дұрыс: <b className="text-emerald-700">{q.correctLetter}</b></> : null}
+                              {q.correctLetter ? (
+                                <>
+                                  {" "}
+                                  | Дұрыс:{" "}
+                                  <b className="text-emerald-700">{q.correctLetter}</b>
+                                </>
+                              ) : null}
                             </p>
+                            {res?.error && (
+                              <p className="mt-1 text-xs text-rose-600">
+                                {res.error}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>

@@ -1,63 +1,33 @@
 // src/api/client.js
-// ЕДИНАЯ точка входа для всех запросов
+import http from "@/lib/http";
 
-const BASE = (import.meta?.env?.VITE_QAZAQMIND_SERVICE || "").replace(/\/+$/, ""); // "" => будем ходить на /api/*
-const cut = (s, n = 180) => (s && s.length > n ? `${s.slice(0, n)}…` : s || "");
-
-const buildUrl = (path) => (/^https?:\/\//.test(path) ? path : `${BASE}${path}`);
-
-export const getToken = () =>
-  localStorage.getItem("access_token") ||
-  sessionStorage.getItem("access_token") ||
-  null;
-
-const authHeaders = () => {
-  const t = getToken();
-  return t ? { Authorization: `Bearer ${t}` } : {};
-};
-
-export function debugAuth() {
-  // Удобный лог: видно, куда бьем и есть ли токен
-  // Если BASE пустой — ждём vite proxy на /api
-  console.info(
-    "[api-client] BASE =",
-    BASE || "(proxy:/api)",
-    "| token?",
-    !!getToken()
-  );
+// Нормализуем путь: один ведущий слэш, без двойного /api
+function normalizePath(p) {
+  let s = String(p || "");
+  if (!s.startsWith("/")) s = `/${s}`;
+  const base = String(http.defaults.baseURL || "");
+  // если base оканчивается на /api — уберём /api в начале пути
+  if (/\/api\/?$/i.test(base)) s = s.replace(/^\/api(\/|$)/i, "/");
+  // прибираем повторные слэши (кроме схемы http://)
+  s = s.replace(/([^:])\/{2,}/g, "$1/");
+  return s;
 }
 
-export async function getJSON(path) {
-  const r = await fetch(buildUrl(path), {
-    method: "GET",
-    headers: { Accept: "application/json", ...authHeaders() },
-    credentials: "include", // на случай куки-сессии
-    mode: "cors",
-  });
-  if (!r.ok) {
-    let txt = "";
-    try { txt = await r.text(); } catch {}
-    throw new Error(`${r.status} ${r.statusText}${txt ? " — " + cut(txt) : ""}`);
-  }
-  return r.json();
+export async function getJSON(path, config = {}) {
+  const { data } = await http.get(normalizePath(path), config);
+  return data;
+}
+export async function postJSON(path, body, config = {}) {
+  const { data } = await http.post(normalizePath(path), body, config);
+  return data;
+}
+export async function putJSON(path, body, config = {}) {
+  const { data } = await http.put(normalizePath(path), body, config);
+  return data;
+}
+export async function delJSON(path, config = {}) {
+  const { data } = await http.delete(normalizePath(path), config);
+  return data;
 }
 
-export async function postJSON(path, body = {}) {
-  const r = await fetch(buildUrl(path), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...authHeaders(),
-    },
-    credentials: "include",
-    mode: "cors",
-    body: JSON.stringify(body),
-  });
-  if (!r.ok) {
-    let txt = "";
-    try { txt = await r.text(); } catch {}
-    throw new Error(`${r.status} ${r.statusText}${txt ? " — " + cut(txt) : ""}`);
-  }
-  return r.json();
-}
+export default { getJSON, postJSON, putJSON, delJSON };

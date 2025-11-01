@@ -1,10 +1,13 @@
 // src/pages/TeacherConsole.jsx
 import React from "react";
 import { motion } from "framer-motion";
-import { fetchResources } from "../api/resources";
+import { fetchResources } from "@/api/resources";
 
 const LS_KEY = "teacher_console_state_v1";
+const LS_NOTE_KEY = "teacher_console_groupnote_v1";
+const safeUrl = (u) => (/^https?:\/\//i.test(String(u || "")) ? String(u) : "");
 
+// Алғашқы тізім (локалдық демо)
 const DEFAULT_STUDENTS = [
   { id: 1, name: "Айдана Т.", grade: "", present: false, note: "" },
   { id: 2, name: "Мируан С.", grade: "", present: false, note: "" },
@@ -12,47 +15,65 @@ const DEFAULT_STUDENTS = [
   { id: 4, name: "Нұрасыл А.", grade: "", present: false, note: "" },
 ];
 
-function load() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || "null") || DEFAULT_STUDENTS; }
-  catch { return DEFAULT_STUDENTS; }
+function loadStudents() {
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY) || "null") || DEFAULT_STUDENTS;
+  } catch {
+    return DEFAULT_STUDENTS;
+  }
 }
-function save(data) { localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+function saveStudents(data) {
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
 
 export default function TeacherConsole() {
-  const [students, setStudents] = React.useState(load);
-  const [groupNote, setGroupNote] = React.useState("");
+  const [students, setStudents] = React.useState(loadStudents);
+  const [groupNote, setGroupNote] = React.useState(
+    () => localStorage.getItem(LS_NOTE_KEY) || ""
+  );
 
-  React.useEffect(() => { save(students); }, [students]);
+  React.useEffect(() => { saveStudents(students); }, [students]);
+  React.useEffect(() => { localStorage.setItem(LS_NOTE_KEY, groupNote || ""); }, [groupNote]);
 
   const setField = (id, patch) =>
-    setStudents(prev => prev.map(s => (s.id === id ? { ...s, ...patch } : s)));
+    setStudents((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
 
   const markAll = (present) =>
-    setStudents(prev => prev.map(s => ({ ...s, present })));
+    setStudents((prev) => prev.map((s) => ({ ...s, present })));
 
   const clearAll = () =>
-    setStudents(prev => prev.map(s => ({ ...s, grade: "", note: "" })));
+    setStudents((prev) => prev.map((s) => ({ ...s, grade: "", note: "" })));
 
-  const presentCount = students.filter(s => s.present).length;
+  const presentCount = students.filter((s) => s.present).length;
 
   const exportJSON = () => {
     const payload = { date: new Date().toISOString(), groupNote, students };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `teacher-console-${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `teacher-console-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
   };
 
-  const [summaryStudentId, setSummaryStudentId] = React.useState(students[0]?.id || 1);
-  const curr = students.find(s => s.id === Number(summaryStudentId));
-  const parentSummary = curr ? (
-    `Сәлеметсіз бе! ${curr.name} бүгін сабаққа ${curr.present ? "қатысты" : "қатыспады"}.
-Соңғы баға: ${curr.grade || "—"}. Мұғалім ескертпесі: ${curr.note || "жоқ"}.`
-  ) : "";
+  const [summaryStudentId, setSummaryStudentId] = React.useState(
+    students[0]?.id ?? 1
+  );
 
-  /* -------- Resources (server) -------- */
+  // Егер таңдалған оқушы тізімнен жоғалса — автоматты түрде біріншіге ауысамыз
+  React.useEffect(() => {
+    if (!students.find((s) => s.id === Number(summaryStudentId)) && students[0]) {
+      setSummaryStudentId(students[0].id);
+    }
+  }, [students, summaryStudentId]);
+
+  const curr = students.find((s) => s.id === Number(summaryStudentId));
+  const parentSummary = curr
+    ? `Сәлеметсіз бе! ${curr.name} бүгін сабаққа ${curr.present ? "қатысты" : "қатыспады"}.
+Соңғы баға: ${curr.grade || "—"}. Мұғалім ескертпесі: ${curr.note || "жоқ"}.`
+    : "";
+
+  /* -------- Ресурстар (server) -------- */
   const [resQuery, setResQuery] = React.useState("");
   const [resources, setResources] = React.useState([]);
   const [resLoading, setResLoading] = React.useState(false);
@@ -71,8 +92,7 @@ export default function TeacherConsole() {
     }
   };
 
-  React.useEffect(() => { loadResources(""); }, []);
-
+  React.useEffect(() => { loadResources("*"); }, []);
   const onResSearch = () => loadResources(resQuery);
   const onResKey = (e) => { if (e.key === "Enter") onResSearch(); };
 
@@ -113,7 +133,7 @@ export default function TeacherConsole() {
             </tr>
           </thead>
           <tbody>
-            {students.map(s => (
+            {students.map((s) => (
               <tr key={s.id} className="border-t">
                 <td className="px-4 py-3">{s.name}</td>
                 <td className="px-4 py-3">
@@ -121,7 +141,7 @@ export default function TeacherConsole() {
                     <input
                       type="checkbox"
                       checked={s.present}
-                      onChange={e => setField(s.id, { present: e.target.checked })}
+                      onChange={(e) => setField(s.id, { present: e.target.checked })}
                     />
                     <span>{s.present ? "Қатысты" : "Қатыспады"}</span>
                   </label>
@@ -130,7 +150,7 @@ export default function TeacherConsole() {
                   <input
                     type="text"
                     value={s.grade}
-                    onChange={e => setField(s.id, { grade: e.target.value })}
+                    onChange={(e) => setField(s.id, { grade: e.target.value })}
                     className="w-24 rounded-lg border border-slate-300 px-2 py-1 outline-none focus:ring-2 focus:ring-indigo-500/60"
                     placeholder="мыс: 10"
                   />
@@ -139,7 +159,7 @@ export default function TeacherConsole() {
                   <input
                     type="text"
                     value={s.note}
-                    onChange={e => setField(s.id, { note: e.target.value })}
+                    onChange={(e) => setField(s.id, { note: e.target.value })}
                     className="w-full rounded-lg border border-slate-300 px-2 py-1 outline-none focus:ring-2 focus:ring-indigo-500/60"
                     placeholder="қысқа ескерту"
                   />
@@ -169,10 +189,12 @@ export default function TeacherConsole() {
             <label className="text-sm text-slate-600">Оқушы:</label>
             <select
               value={summaryStudentId}
-              onChange={(e) => setSummaryStudentId(e.target.value)}
+              onChange={(e) => setSummaryStudentId(Number(e.target.value))}
               className="rounded-lg border border-slate-300 px-3 py-2"
             >
-              {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {students.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
             </select>
           </div>
           <textarea
@@ -196,7 +218,10 @@ export default function TeacherConsole() {
             placeholder="іздеу: classroom, steam, methodology…"
             className="flex-1 rounded-xl border border-slate-300 px-3 py-2"
           />
-          <button onClick={onResSearch} className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold">
+          <button
+            onClick={onResSearch}
+            className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold"
+          >
             Іздеу
           </button>
         </div>
@@ -205,28 +230,38 @@ export default function TeacherConsole() {
         {resErr && !resLoading && <div className="mt-3 text-sm text-rose-600">{resErr}</div>}
 
         <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {resources.map((r) => (
-            <a
-              key={r.id}
-              href={r.url}
-              target="_blank"
-              rel="noreferrer"
-              className="block rounded-xl border border-slate-200 p-4 hover:bg-slate-50"
-              title={r.url}
-            >
-              <div className="font-semibold text-slate-900">{r.title}</div>
-              {r.description && <div className="mt-1 text-sm text-slate-700">{r.description}</div>}
-              {r.tags && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {String(r.tags).split(",").map((t) => (
-                    <span key={t} className="text-xs px-2 py-1 rounded-lg bg-slate-100 border border-slate-200">
-                      #{t.trim()}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </a>
-          ))}
+          {resources.map((r) => {
+            const href = safeUrl(r.url);
+            return (
+              <a
+                key={r.id}
+                href={href || undefined}
+                target="_blank"
+                rel="noreferrer noopener"
+                className={`block rounded-xl border border-slate-200 p-4 hover:bg-slate-50 ${
+                  href ? "" : "pointer-events-none opacity-60"
+                }`}
+                title={r.url}
+              >
+                <div className="font-semibold text-slate-900">{r.title}</div>
+                {r.description && (
+                  <div className="mt-1 text-sm text-slate-700">{r.description}</div>
+                )}
+                {Array.isArray(r.tags) && r.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {r.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="text-xs px-2 py-1 rounded-lg bg-slate-100 border border-slate-200"
+                      >
+                        #{t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </a>
+            );
+          })}
           {!resLoading && resources.length === 0 && (
             <div className="text-sm text-slate-500">Нәтиже жоқ.</div>
           )}

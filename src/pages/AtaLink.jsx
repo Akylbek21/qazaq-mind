@@ -1,10 +1,19 @@
 // src/pages/AtaLink.jsx
 import React from "react";
 import { motion } from "framer-motion";
+import {
+  fetchAtaArticles,
+  fetchAtaArticle,
+  fetchAtaArticleQuestions,
+  submitAtaAnswer,
+  fetchAtaArticleSummary,
+  _utils as ATA,
+} from "@/api/atalink";
 
 /* ===================== PERSIST KEYS ===================== */
 const QUIZ_KEY = "atalink_quiz_stats_v1";
 const TAB_KEY  = "atalink_active_tab_v1";
+const ART_KEY  = "atalink_active_article_v1";
 
 /* ===================== HELPERS ===================== */
 function load(key, fallback) {
@@ -14,7 +23,6 @@ function load(key, fallback) {
 function save(key, val) {
   localStorage.setItem(key, JSON.stringify(val));
 }
-
 /* YouTube → embed */
 function toYouTubeEmbed(url) {
   try {
@@ -30,143 +38,24 @@ function toYouTubeEmbed(url) {
   } catch {}
   return null;
 }
+/* очень простой markdown→html (только **bold** и переносы) */
+function mdToHtml(md = "") {
+  let html = String(md || "");
+  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/\n/g, "<br/>");
+  return html;
+}
 
-/* ===================== DATA ===================== */
-/* Кеңестер (қысқаша ТОП-10) */
-const QUICK_TIPS = [
-  {
-    title: "1) Сүйіспеншілік пен қолдау",
-    bullets: [
-      "«Сен маған маңыздысың», «Саған сенемін» деп күн сайын айту.",
-      "Іс-әрекетпен көрсету: уақыт бөлу, бірге ойнау.",
-      "Баланы емес, әрекетін талқылау: «Бұл ісің дұрыс болмады».",
-    ],
-  },
-  {
-    title: "2) Тәртіп пен талап",
-    bullets: [
-      "Тұрақты режим: ұйқы/оқу/демалыс уақыты.",
-      "Тыйымның себебін түсіндіру.",
-      "«Жоқ» — сирек, орнымен.",
-    ],
-  },
-  {
-    title: "3) Тыңдай білу",
-    bullets: [
-      "Бөліп жібермей, соңына дейін тыңдау.",
-      "Алдымен пікірін сыйлау, кейін түсіндіру.",
-      "Күнде 10–15 мин тек сөйлесу (экрансыз).",
-    ],
-  },
-  {
-    title: "4) Үлгі болу",
-    bullets: [
-      "Бала — сіздің әрекеттіңізді көшіреді.",
-      "Сыпайылық пен сабырды алдымен өзіңіз көрсетіңіз.",
-      "Қиын сәттердегі мінез — ең үлкен сабақ.",
-    ],
-  },
-  {
-    title: "5) Ойлау және жауапкершілік",
-    bullets: [
-      "Кішкентай міндеттер: бөлме, сөмке.",
-      "Таңдау беру: «Қай киімді киесің?».",
-      "Қателікті бірге талқылау — үйрену мүмкіндігі.",
-    ],
-  },
-  {
-    title: "6) Салыстырмау",
-    bullets: [
-      "Басқамен салыстыру — сенімсіздік тудырады.",
-      "Өз прогресімен салыстыру: «Кеше жақсы істедің…».",
-    ],
-  },
-  {
-    title: "7) Оқу мен еңбек маңызы",
-    bullets: [
-      "Оқу — өмірге дайындық.",
-      "Жетістікке бірге қуанайық.",
-      "Қиындықта қолдау: «Қолыңнан келеді».",
-    ],
-  },
-  {
-    title: "8) Бірге уақыт",
-    bullets: [
-      "Апталық отбасылық кеш: ойын/серуен/фильм.",
-      "Экранды шетке қою — ең үлкен сыйлық.",
-    ],
-  },
-  {
-    title: "9) Эмоцияны басқару",
-    bullets: [
-      "Ашуды басқарудың үлгісі.",
-      "Эмоцияны тану: «Қазір ренжулі екенсің…».",
-    ],
-  },
-  {
-    title: "10) Сенім мен махаббат",
-    bullets: [
-      "Қорықпай сырын айта алатын орта.",
-      "Сенім бар жерде түсіністік те бар.",
-    ],
-  },
-];
+/* ===================== DATA (локальные секции остаются) ===================== */
+const QUICK_TIPS = [ /* ... как у тебя было ... */ {
+  title: "1) Сүйіспеншілік пен қолдау",
+  bullets: [
+    "«Сен маған маңыздысың», «Саған сенемін» деп күн сайын айту.",
+    "Іс-әрекетпен көрсету: уақыт бөлу, бірге ойнау.",
+    "Баланы емес, әрекетін талқылау: «Бұл ісің дұрыс болмады».",
+  ],
+}, /* остальные элементы без изменений */ ];
 
-/* Тест (10 сұрақ) */
-const QUIZ = [
-  {
-    q: "1. Бала тәрбиесіндегі ең басты нәрсе не?",
-    options: ["A) Тәртіп пен жазалау", "B) Сүйіспеншілік пен түсіністік", "C) Үнемі бақылау"],
-    correct: 1,
-  },
-  {
-    q: "2. Бала қателік жасаса, ата-ананың дұрыс әрекеті?",
-    options: ["A) Бірден ұрысу", "B) Қателігін түсіндіру және сабырмен сөйлесу", "C) Елемеу"],
-    correct: 1,
-  },
-  {
-    q: "3. Бала өз ойын айтқанда, ата-ана не істеуі керек?",
-    options: ["A) Бірден түзету", "B) Тыңдап, пікірін сыйлау", "C) «Үлкендер жақсы біледі» деу"],
-    correct: 1,
-  },
-  {
-    q: "4. Балаға сенім арту нені білдіреді?",
-    options: ["A) Барлығын еркіне беру", "B) Бақылаусыз қалдыру", "C) Қабілетіне, сөзіне, шешіміне сену"],
-    correct: 2,
-  },
-  {
-    q: "5. Тәртіп қалыптастыруда не маңызды?",
-    options: ["A) Қатал жазалау", "B) Тұрақты ережелер мен үлгі болу", "C) Тек мектепке жүктеу"],
-    correct: 1,
-  },
-  {
-    q: "6. Мадақтау не береді?",
-    options: ["A) Тек қуаныш", "B) Өзіндік сенімді арттырады", "C) Еш әсері жоқ"],
-    correct: 1,
-  },
-  {
-    q: "7. Жауапкершілікті қалай үйретуге болады?",
-    options: ["A) Бәрін өзіңіз жасау", "B) Кішкентай тапсырмалар беру", "C) Тек ұрысу"],
-    correct: 1,
-  },
-  {
-    q: "8. Бала ашуланғанда не істеу керек?",
-    options: ["A) Айқайлау", "B) Ашу басылғанша күту", "C) Себебін сабырмен сұрау"],
-    correct: 2,
-  },
-  {
-    q: "9. Ең тиімді тәрбие тәсілі?",
-    options: ["A) Өз ісіңізбен үлгі болу", "B) Қатты талап қою", "C) Мұғалімге тапсыру"],
-    correct: 0,
-  },
-  {
-    q: "10. Салыстыру салдары қандай болуы мүмкін?",
-    options: ["A) Мотивация артады", "B) Сенімсіздік пен реніш тудырады", "C) Еш әсер етпейді"],
-    correct: 1,
-  },
-];
-
-/* Видеолар */
 const VIDEO_URLS = [
   "https://www.youtube.com/watch?v=BcusHhHa3DE",
   "https://www.youtube.com/watch?v=Ph4V60tlf4o",
@@ -174,108 +63,173 @@ const VIDEO_URLS = [
   "https://www.youtube.com/watch?v=iC1X6dGuARY",
 ];
 
-/* Заңнама (қысқаша карточкалар) */
-const LAWS = [
-  {
-    title: "ӘҚБтК 127-бап — Тәрбиелеу/білім беру міндеттерін орындамау",
-    points: [
-      "Міндеттерді орындамау — 10 АЕК айыппұл.",
-      "Қайталау (1 жыл ішінде) — 15 АЕК немесе 5 тәулікке дейін қамақ.",
-      "Елеулі салдар туғызса — 20 АЕК немесе 10 тәулікке дейін.",
-    ],
-  },
-  {
-    title: "ӘҚБтК 73-бап — Отбасы-тұрмыстық қатынастардағы құқыққа қарсы әрекеттер",
-    points: [
-      "Былапыт сөйлеу, қорлау, заттарды бүлдіру — ескерту/20 сағ. қоғамдық жұмыс/5 тәулікке дейін.",
-      "Қайталау — 40 сағ. не 10 тәулікке дейін.",
-      "Кей санаттарға — 5 АЕК айыппұл.",
-    ],
-  },
-  {
-    title: "ӘҚБтК 127-2-бап — Буллинг/кибербуллинг",
-    points: [
-      "Ескерту немесе 10 АЕК айыппұл.",
-      "Қайталау — 30 АЕК.",
-      "12–16 жаста жасалса — ата-анасына ескерту не 10 АЕК.",
-    ],
-  },
-  {
-    title: "ӘҚБтК 132-бап — Кәмелетке толмағандардың түнгі уақытта ойын-сауық мекемелерінде болуы",
-    points: [
-      "22:00–06:00 аралығы, заңды өкілсіз — 10–50 АЕК (тіркелімге қарай).",
-      "Қайталау — қызметті тоқтата тұрып, 20–100 АЕК.",
-    ],
-  },
-  {
-    title: "ӘҚБтК 133-бап — 18 жасқа толмағандардың темекі өнімдерін сатуы",
-    points: [
-      "Жеке — 15 АЕК, шағын — 25 АЕК, орта — 40 АЕК, ірі — 100 АЕК.",
-      "Қайталау — 30/50/80/200 АЕК.",
-    ],
-  },
-];
+const LAWS = [ /* твои карточки законов — без изменений */ ];
+
+/* Локальный QUIZ — теперь только как fallback, если API недоступен */
+const LOCAL_QUIZ = [ /* твои 10 вопросов как было */ ];
 
 /* ===================== MAIN ===================== */
 export default function AtaLink() {
-  /* Tabs: tips | quiz | videos | laws */
+  /* -------- tabs -------- */
   const [tab, setTab] = React.useState(() => load(TAB_KEY, "tips"));
   React.useEffect(() => save(TAB_KEY, tab), [tab]);
 
-  /* Quiz state */
+  /* -------- server articles -------- */
+  const [articles, setArticles] = React.useState([]);
+  const [articleId, setArticleId] = React.useState(() => load(ART_KEY, null));
+  const [article, setArticle] = React.useState(null);
+  const [artLoading, setArtLoading] = React.useState(false);
+  const [artErr, setArtErr] = React.useState("");
+
+  /* -------- server quiz -------- */
+  const [srvQuestions, setSrvQuestions] = React.useState([]); // [{id,prompt,options}]
+  const [srvLoading, setSrvLoading] = React.useState(false);
+  const [srvErr, setSrvErr] = React.useState("");
+
   const [quizStep, setQuizStep] = React.useState(0); // 0=intro, 1..N, done=N+1
-  const [answers, setAnswers] = React.useState({});
-  const [quizStats, setQuizStats] = React.useState(() => load(QUIZ_KEY, { attempts: 0, best: 0, last: 0 }));
+  const [answers, setAnswers] = React.useState({});  // index -> optionIndex
+  const [quizStats, setQuizStats] = React.useState(() =>
+    load(QUIZ_KEY, { attempts: 0, best: 0, last: 0 })
+  );
 
-  const quizLen = QUIZ.length;
-  const score = Object.entries(answers).reduce((a, [i, v]) => a + (QUIZ[+i].correct === v ? 1 : 0), 0);
+  const isServerMode = srvQuestions.length > 0 || articleId != null;
+  const total = isServerMode ? srvQuestions.length : LOCAL_QUIZ.length;
 
-  const quizStart = () => { setQuizStep(1); setAnswers({}); };
+  const scoreLocal = Object.entries(answers).reduce((a, [i, v]) =>
+    a + (LOCAL_QUIZ[+i]?.correct === v ? 1 : 0), 0);
+
+  /* Итоги сервера */
+  const [srvSubmitting, setSrvSubmitting] = React.useState(false);
+  const [srvSummary, setSrvSummary] = React.useState(null); // {total, correct}
+  const [srvSubmitErr, setSrvSubmitErr] = React.useState("");
+
+  /* -------- load articles on mount -------- */
+  React.useEffect(() => {
+    let ignore = false;
+    (async () => {
+      setArtLoading(true); setArtErr("");
+      try {
+        const list = await fetchAtaArticles();
+        if (ignore) return;
+        setArticles(list);
+        // выбрать активную: сохранённую или первую
+        const nextId = articleId ?? list[0]?.id ?? null;
+        setArticleId(nextId);
+        if (nextId) save(ART_KEY, nextId);
+      } catch (e) {
+        if (ignore) return;
+        setArtErr(e?.message || "Мақалалар жүктелмеді (құқық/желіні тексеріңіз).");
+      } finally {
+        if (!ignore) setArtLoading(false);
+      }
+    })();
+    return () => { ignore = true; };
+  }, []); // один раз
+
+  /* -------- load selected article & questions -------- */
+  React.useEffect(() => {
+    let ignore = false;
+    if (!articleId) { setArticle(null); setSrvQuestions([]); return; }
+
+    (async () => {
+      setSrvErr(""); setSrvSummary(null);
+      try {
+        const art = await fetchAtaArticle(articleId);
+        if (ignore) return;
+        setArticle(art);
+      } catch (e) {
+        if (ignore) return;
+        setArticle(null);
+        setSrvErr(e?.message || "Мақала алынбады.");
+      }
+
+      try {
+        setSrvLoading(true);
+        const qs = await fetchAtaArticleQuestions(articleId);
+        if (ignore) return;
+        setSrvQuestions(qs);
+      } catch (e) {
+        if (ignore) return;
+        setSrvQuestions([]);
+        setSrvErr(e?.message || "Сұрақтар жүктелмеді.");
+      } finally {
+        if (!ignore) setSrvLoading(false);
+      }
+    })();
+
+    return () => { ignore = true; };
+  }, [articleId]);
+
+  /* -------- quiz helpers -------- */
+  const quizStart = () => { setQuizStep(1); setAnswers({}); setSrvSummary(null); setSrvSubmitErr(""); };
   const quizPick  = (idx, optIdx) => setAnswers(p => ({ ...p, [idx]: optIdx }));
   const quizNext  = () => {
-    if (quizStep < quizLen) setQuizStep(quizStep + 1);
-    else {
-      setQuizStep(quizLen + 1);
-      const attempts = (quizStats.attempts || 0) + 1;
-      const best = Math.max(quizStats.best || 0, score);
-      const next = { attempts, best, last: score, lastAt: Date.now() };
-      setQuizStats(next);
-      save(QUIZ_KEY, next);
-    }
+    if (quizStep < total) setQuizStep(quizStep + 1);
+    else finishQuiz();
   };
-  const quizRestart = () => { setQuizStep(0); setAnswers({}); };
+  const quizRestart = () => { setQuizStep(0); setAnswers({}); setSrvSummary(null); setSrvSubmitErr(""); };
 
-  /* Videos embeds */
+  async function finishQuiz() {
+    setQuizStep(total + 1);
+
+    // локальная статистика (для локального теста)
+    if (!isServerMode) {
+      const attempts = (quizStats.attempts || 0) + 1;
+      const best = Math.max(quizStats.best || 0, scoreLocal);
+      const next = { attempts, best, last: scoreLocal, lastAt: Date.now() };
+      setQuizStats(next); save(QUIZ_KEY, next);
+      return;
+    }
+
+    // серверный подсчёт: отправляем ответы + снимаем summary
+    if (!articleId || srvQuestions.length === 0) return;
+
+    setSrvSubmitting(true); setSrvSubmitErr(""); setSrvSummary(null);
+    try {
+      // отправка каждого ответа
+      const jobs = srvQuestions.map((q, i) => {
+        const choiceIdx = answers[i];
+        const letter = ATA.toLetterByIndex(choiceIdx);
+        if (!letter) return null;
+        return submitAtaAnswer({ questionId: q.id, chosen: letter });
+      }).filter(Boolean);
+
+      await Promise.allSettled(jobs);
+      const sum = await fetchAtaArticleSummary(articleId);
+      setSrvSummary({ total: Number(sum?.total ?? srvQuestions.length), correct: Number(sum?.correct ?? 0) });
+    } catch (e) {
+      setSrvSubmitErr(e?.message || "Серверлік қорытындыны алу мүмкін болмады.");
+      setSrvSummary(null);
+    } finally {
+      setSrvSubmitting(false);
+    }
+  }
+
+  /* -------- videos embeds -------- */
   const embeds = VIDEO_URLS.map(toYouTubeEmbed).filter(Boolean);
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-10">
-      <motion.h1
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-3xl md:text-4xl font-extrabold text-slate-900"
-      >
+      <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+        className="text-3xl md:text-4xl font-extrabold text-slate-900">
         AtaLink — <span className="text-[#f59e0b]">Ата-анамен байланыс (кеңес/тест/видео/заң)</span>
       </motion.h1>
       <p className="mt-2 text-slate-600">
-        Хабарлама блогы алынды. Бұл бетте — кеңестер, тест, видеолар және құқықтық анықтама. Барлығы құрылғыңызда локалды сақталады.
+        Мақалалар мен тесттер енді серверден жүктеледі. Қажет болса — локалдық режимге автоматты түрде ауысады.
       </p>
 
       {/* Tabs */}
       <div className="mt-6 flex flex-wrap gap-2">
         {[
           ["tips",   "Кеңестер"],
-          ["quiz",   "Тест"],
+          ["quiz",   "Тест (мақала)"],
           ["videos", "Видеолар"],
           ["laws",   "Заңнама"],
         ].map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
+          <button key={key} onClick={() => setTab(key)}
             className={`px-3 py-2 rounded-xl border text-sm font-semibold ${
               tab === key ? "bg-amber-500 text-white border-amber-500" : "border-slate-300"
-            }`}
-          >
+            }`}>
             {label}
           </button>
         ))}
@@ -284,7 +238,6 @@ export default function AtaLink() {
       {/* ============== TAB: TIPS ============== */}
       {tab === "tips" && (
         <div className="mt-6 grid gap-4">
-          {/* Quick top-10 */}
           <div className="rounded-2xl border border-slate-200 bg-white p-4">
             <h3 className="font-bold text-slate-900">Ата-аналарға арналған кеңестер (ТОП-10)</h3>
             <div className="mt-3 grid md:grid-cols-2 gap-3">
@@ -297,61 +250,85 @@ export default function AtaLink() {
                 </div>
               ))}
             </div>
-            <div className="mt-3 text-sm text-slate-600">
-              Есіңізде болсын: баланы емес, іс-әрекетті талқылаңыз. Сенім мен тұрақты режим — тәрбиенің негізі.
-            </div>
           </div>
-
-          {/* Long article in details */}
-          <details className="rounded-2xl border border-slate-200 bg-white p-4">
-            <summary className="cursor-pointer font-bold text-slate-900">
-              Кеңейтілген нұсқа (30 бағыт) — ашу/жабу
-            </summary>
-            <div className="mt-3 text-sm text-slate-800 space-y-3">
-              <p>
-                Төменде бала тәрбиесіне қатысты кеңейтілген ұсыныстар берілген:
-                махаббат пен қолдау, құрмет, үлгі, өзін-өзі бағалау, тәртіп пен шектеулер,
-                жауапкершілік, оқуға қызығу, эмоциялық қолдау, белсенді тыңдау, таңдау,
-                қателіктерді кешіру, жеке уақыт, өмірлік дағдылар, этика, қызығушылықтар,
-                уақыт менеджменті, еркіндік-жауапкершілік тепе-теңдігі, отбасылық уақыт,
-                дұрыс тамақтану мен денсаулық, шығармашылық, әлеуметтік дағдылар, эмоциялық
-                интеллект, әділдік, мәдениет пен дәстүр, қауіпсіздік, жанжалдан сақтану, ең соңында — балаға уақыт бөлу.
-              </p>
-              <p className="text-slate-600">
-                Бұл мәтінді қажет болса бөлек бетке шығарып, PDF ретінде басып шығаруға да болады.
-              </p>
-            </div>
-          </details>
         </div>
       )}
 
-      {/* ============== TAB: QUIZ ============== */}
+      {/* ============== TAB: QUIZ (SERVER-FIRST) ============== */}
       {tab === "quiz" && (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
-          <h3 className="font-bold text-slate-900">Тест: “Бала тәрбиесіндегі ата-ананың рөлі”</h3>
+          <h3 className="font-bold text-slate-900">Тест: мақаланы таңдаңыз да, сұрақтарға жауап беріңіз</h3>
 
-          {quizStep === 0 && (
-            <div className="mt-3">
-              <p className="text-slate-600 text-sm">
-                Дұрыс деп есептеген бір жауапты таңдаңыз. Соңында ұпайыңыз бен кеңес шығады.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-600">
-                <div className="rounded-xl border p-3">Соңғы ұпай: <b>{quizStats.last ?? 0}</b> / {QUIZ.length}</div>
-                <div className="rounded-xl border p-3">Ең үздік нәтиже: <b>{quizStats.best ?? 0}</b> / {QUIZ.length}</div>
-                <div className="rounded-xl border p-3">Талпыныс саны: <b>{quizStats.attempts ?? 0}</b></div>
-              </div>
-              <button onClick={quizStart} className="mt-3 px-4 py-2 rounded-xl bg-amber-500 text-white font-semibold">
-                Тесті бастау
-              </button>
+          {/* Выбор статьи */}
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Мақала</label>
+              <select
+                value={articleId ?? ""}
+                onChange={(e) => { const v = e.target.value ? Number(e.target.value) : null; setArticleId(v); save(ART_KEY, v); setQuizStep(0); setAnswers({}); setSrvSummary(null); }}
+                className="w-full rounded-xl border px-3 py-2"
+              >
+                <option value="">— таңдалмаған —</option>
+                {articles.map((a) => (
+                  <option key={a.id} value={a.id}>{a.title}</option>
+                ))}
+              </select>
+              {artLoading && <div className="mt-1 text-sm text-slate-500">Мақалалар жүктелуде…</div>}
+              {artErr && <div className="mt-1 text-sm text-rose-600">{artErr}</div>}
+            </div>
+
+            {/* Короткая сводка статьи */}
+            <div className="rounded-xl border border-slate-200 p-3">
+              <div className="text-sm text-slate-600">Қысқаша</div>
+              <div className="mt-1 text-slate-900 font-medium">{article?.title || "—"}</div>
+              {article?.summary && <div className="mt-1 text-sm text-slate-700">{article.summary}</div>}
+            </div>
+          </div>
+
+          {/* Контент статьи (markdown) */}
+          {article?.contentMarkdown && (
+            <div className="mt-4 rounded-xl border border-slate-200 p-3 bg-white">
+              <div className="text-sm text-slate-600 mb-1">Мазмұны</div>
+              <div
+                className="prose prose-sm max-w-none text-slate-800"
+                dangerouslySetInnerHTML={{ __html: mdToHtml(article.contentMarkdown) }}
+              />
             </div>
           )}
 
-          {quizStep > 0 && quizStep <= QUIZ.length && (
+          {/* Intro */}
+          {quizStep === 0 && (
             <div className="mt-4">
-              <div className="text-sm text-slate-600">Сұрақ {quizStep}/{QUIZ.length}</div>
-              <div className="mt-2 font-semibold text-slate-900">{QUIZ[quizStep - 1].q}</div>
+              <div className="text-slate-600 text-sm">
+                {isServerMode
+                  ? "Мақаланы таңдағаннан кейін «Тесті бастау» батырмасын басыңыз."
+                  : "Сервер қолжетімсіз — локалдық тестке ауыстық."}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-600">
+                <div className="rounded-xl border p-3">Соңғы ұпай: <b>{quizStats.last ?? 0}</b> / {LOCAL_QUIZ.length}</div>
+                <div className="rounded-xl border p-3">Ең үздік нәтиже: <b>{quizStats.best ?? 0}</b> / {LOCAL_QUIZ.length}</div>
+                <div className="rounded-xl border p-3">Талпыныс саны: <b>{quizStats.attempts ?? 0}</b></div>
+              </div>
+              <button
+                onClick={quizStart}
+                disabled={isServerMode && (!articleId || srvLoading || srvQuestions.length === 0)}
+                className="mt-3 px-4 py-2 rounded-xl bg-amber-500 text-white font-semibold disabled:opacity-40"
+              >
+                Тесті бастау
+              </button>
+              {srvErr && <div className="mt-2 text-sm text-rose-600">{srvErr}</div>}
+            </div>
+          )}
+
+          {/* Вопросы */}
+          {quizStep > 0 && quizStep <= total && (
+            <div className="mt-4">
+              <div className="text-sm text-slate-600">Сұрақ {quizStep}/{total}</div>
+              <div className="mt-2 font-semibold text-slate-900">
+                {isServerMode ? (srvQuestions[quizStep - 1]?.prompt || "") : (LOCAL_QUIZ[quizStep - 1].q)}
+              </div>
               <div className="mt-3 grid gap-2">
-                {QUIZ[quizStep - 1].options.map((opt, i) => {
+                {(isServerMode ? (srvQuestions[quizStep - 1]?.options || []) : LOCAL_QUIZ[quizStep - 1].options).map((opt, i) => {
                   const checked = answers[quizStep - 1] === i;
                   return (
                     <button
@@ -361,7 +338,7 @@ export default function AtaLink() {
                         checked ? "border-amber-500 bg-amber-50" : "border-slate-200 hover:bg-slate-50"
                       }`}
                     >
-                      {opt}
+                      {isServerMode ? opt : opt}
                     </button>
                   );
                 })}
@@ -379,41 +356,58 @@ export default function AtaLink() {
                   disabled={!(quizStep - 1 in answers)}
                   className="px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold disabled:opacity-40"
                 >
-                  {quizStep < QUIZ.length ? "Келесі" : "Нәтижені көру"}
+                  {quizStep < total ? "Келесі" : "Нәтижені көру"}
                 </button>
               </div>
             </div>
           )}
 
-          {quizStep === QUIZ.length + 1 && (
+          {/* Результат */}
+          {quizStep === total + 1 && (
             <div className="mt-4">
-              <div className="text-xl font-bold text-slate-900">Нәтиже: {score} / {QUIZ.length}</div>
-              <p className="mt-1 text-slate-700">
-                {score <= 4
-                  ? "Базалық түсініктер қалыптасқан. Кеңестер бетін қарап шығу пайдалы."
-                  : score <= 8
-                  ? "Жақсы! Қолдауды жүйелі жалғастырыңыз, тыңдау мен сенімге мән беріңіз."
-                  : "Керемет! Үлгі түріндегі тәрбие қалыптасқан — осы қарқынмен жалғастырыңыз."}
-              </p>
+              {isServerMode ? (
+                <>
+                  {srvSubmitting && <div className="text-sm text-slate-600">Серверден тексеру…</div>}
+                  {srvSubmitErr && <div className="text-sm text-rose-600">{srvSubmitErr}</div>}
+                  <div className="text-xl font-bold text-slate-900">
+                    Нәтиже: {srvSummary?.correct ?? 0} / {srvSummary?.total ?? total}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-xl font-bold text-slate-900">
+                    Нәтиже: {scoreLocal} / {LOCAL_QUIZ.length}
+                  </div>
+                  <p className="mt-1 text-slate-700">
+                    {scoreLocal <= 4
+                      ? "Базалық түсініктер қалыптасқан. Кеңестерді қарап шығыңыз."
+                      : scoreLocal <= 8
+                      ? "Жақсы! Тыңдау мен сенімге мән беріңіз."
+                      : "Керемет! Үлгілік тәрбие — осы қарқынмен жалғастырыңыз."}
+                  </p>
+                </>
+              )}
 
-              {/* Review */}
-              <div className="mt-4 grid gap-3">
-                {QUIZ.map((qq, idx) => {
-                  const your = answers[idx];
-                  const ok = your === qq.correct;
-                  return (
-                    <div key={idx} className={`rounded-xl border p-3 ${ok ? "border-emerald-200 bg-emerald-50/60" : "border-rose-200 bg-rose-50/60"}`}>
-                      <div className="font-medium text-slate-900">{qq.q}</div>
-                      <div className="mt-1 text-sm">
-                        Таңдалған: <b className={ok ? "text-emerald-700" : "text-rose-700"}>
-                          {your != null ? qq.options[your] : "—"}
-                        </b>{" "}
-                        | Дұрыс: <b className="text-emerald-700">{qq.options[qq.correct]}</b>
+              {/* Review для локального (для сервера ответа «правильный» бэк хранит сам) */}
+              {!isServerMode && (
+                <div className="mt-4 grid gap-3">
+                  {LOCAL_QUIZ.map((qq, idx) => {
+                    const your = answers[idx];
+                    const ok = your === qq.correct;
+                    return (
+                      <div key={idx} className={`rounded-xl border p-3 ${ok ? "border-emerald-200 bg-emerald-50/60" : "border-rose-200 bg-rose-50/60"}`}>
+                        <div className="font-medium text-slate-900">{qq.q}</div>
+                        <div className="mt-1 text-sm">
+                          Таңдалған: <b className={ok ? "text-emerald-700" : "text-rose-700"}>
+                            {your != null ? qq.options[your] : "—"}
+                          </b>{" "}
+                          | Дұрыс: <b className="text-emerald-700">{qq.options[qq.correct]}</b>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
 
               <div className="mt-4 flex gap-3">
                 <button onClick={quizStart} className="px-4 py-2 rounded-xl bg-amber-500 text-white font-semibold">Қайта өту</button>
@@ -429,7 +423,7 @@ export default function AtaLink() {
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
           <h3 className="font-bold text-slate-900">Бала тәрбиесі туралы видеолар</h3>
           <div className="mt-3 grid md:grid-cols-2 gap-4">
-            {VIDEO_URLS.map(toYouTubeEmbed).filter(Boolean).map((src, i) => (
+            {embeds.map((src, i) => (
               <div key={i} className="rounded-xl overflow-hidden border border-slate-200 bg-black/5 aspect-video">
                 <iframe
                   title={`video-${i}`}

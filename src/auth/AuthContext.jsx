@@ -23,9 +23,9 @@ export function AuthProvider({ children }) {
 
   const handleAuth = (t, r, u) => {
     try {
-      jwtDecode(t); // валидируем JWT (необязательно)
+      jwtDecode(t); // валидация JWT (опционально)
     } catch {
-      // если не декодится — продолжаем, раз сервер отдал токен
+      /* ignore */
     }
     const rr = normalizeRole(r);
     localStorage.setItem("qm_token", t);
@@ -36,17 +36,24 @@ export function AuthProvider({ children }) {
     setUsername(u || null);
   };
 
-  // 👉 РЕГИСТРАЦИЯ С АВТО-ЛОГИНОМ (если сервер вернул token)
+  // Регистрация (сервер возвращает token? — логиним сразу)
   const register = async ({ username, password, role = "STUDENT" }) => {
-    const { data } = await http.post("/api/auth/register", { username, password, role });
+    const body = { username, password, role };
+    const { data } = await http.post("/auth/register", body, {
+      headers: { "X-Skip-Auth-Redirect": "1" }, // не редиректить на 401
+    });
     if (data?.token) {
       handleAuth(data.token, data.role ?? role, username);
     }
-    return data; // вдруг нужно использовать вне
+    return data;
   };
 
   const login = async ({ username, password }) => {
-    const { data } = await http.post("/api/auth/login", { username, password });
+    const { data } = await http.post(
+      "/auth/login",
+      { username, password },
+      { headers: { "X-Skip-Auth-Redirect": "1" } }
+    );
     if (!data?.token) throw new Error("Токен не получен");
     handleAuth(data.token, data.role, username);
   };

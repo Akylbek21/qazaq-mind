@@ -1,74 +1,78 @@
 // src/api/pq.js
-const API_BASE = (import.meta?.env?.VITE_QAZAQMIND_SERVICE || "").replace(/\/+$/, "");
-const apiUrl = (p) => (/^https?:\/\//.test(p) ? p : `${API_BASE}${p}`);
-const getToken = () =>
-  localStorage.getItem("access_token") ||
-  sessionStorage.getItem("access_token") ||
-  null;
+import { getJSON, postJSON } from "./client";
 
-async function request(path, { method = "GET", body, headers, ...rest } = {}) {
-  const h = {
-    Accept: "application/json",
-    ...(body ? { "Content-Type": "application/json" } : {}),
-    ...(headers || {}),
+export const API = {
+  TASKS: "/api/pq/tasks",
+  ANSWER: "/api/pq/answer",
+  SUMMARY: "/api/pq/summary",
+
+  // возможные варианты для "toggle"
+  TOGGLE_TASK: (id) => `/api/pq/tasks/${id}/toggle`,
+  TASK_STATUS: (id) => `/api/pq/tasks/${id}/status`,
+  TOGGLE_FALLBACK: "/api/pq/toggle",
+};
+
+const ensureId = (name, v) => {
+  if (v == null || v === "" || Number.isNaN(Number(v))) {
+    throw new TypeError(`${name}: обязателен и должен быть числом/строкой ID`);
+  }
+  return v;
+};
+
+// ==== существовавшие ранее функции (оставь как были) ====
+export async function fetchPQTasks(opts = {}) {
+  const list = await getJSON(API.TASKS, opts);
+  return Array.isArray(list) ? list : [];
+}
+
+export async function submitPQAnswer({ taskId, chosen }, opts = {}) {
+  if (!taskId) throw new TypeError("submitPQAnswer: taskId обязателен");
+  if (chosen == null) throw new TypeError("submitPQAnswer: chosen обязателен");
+  return postJSON(API.ANSWER, { taskId, chosen }, opts);
+}
+
+export async function fetchPQSummary(opts = {}) {
+  return getJSON(API.SUMMARY, opts);
+}
+
+// ==== НОВОЕ: togglePQTask ====
+/**
+ * Переключить/установить состояние задачи PQ.
+ * @param {{taskId: number|string, done?: boolean, status?: 'OPEN'|'DONE'}} payload
+ */
+export async function togglePQTask({ taskId, done = undefined, status = undefined }, opts = {}) {
+  const id = ensureId("togglePQTask.taskId", taskId);
+  // нормализуем вход
+  const normalized = {
+    done: typeof done === "boolean" ? done : undefined,
+    status: status || (typeof done === "boolean" ? (done ? "DONE" : "OPEN") : undefined),
   };
-  const t = getToken();
-  if (t) h.Authorization = `Bearer ${t}`;
 
-  const res = await fetch(apiUrl(path), {
-    method,
-    headers: h,
-    credentials: "include",
-    mode: "cors",
-    body: body ? JSON.stringify(body) : undefined,
-    ...rest,
-  });
+  const candidates = [
+    // самый частый вариант: POST /tasks/{id}/toggle { done: boolean }
+    { path: API.TOGGLE_TASK(id), body: { done: normalized.done } },
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    const err = new Error(`${res.status} ${res.statusText}${text ? ` — ${text.slice(0, 200)}` : ""}`);
-    err.status = res.status;
-    throw err;
-  }
+    // иногда: POST /tasks/{id}/status { status: 'OPEN'|'DONE' }
+    { path: API.TASK_STATUS(id), body: { status: normalized.status } },
 
-  const ct = res.headers.get("content-type") || "";
-  return ct.includes("application/json") ? res.json() : res.text();
-}
+    // универсальный фолбэк: POST /toggle { taskId, done }
+    { path: API.TOGGLE_FALLBACK, body: { taskId: id, done: normalized.done } },
+  ];
 
-const PQ_FALLBACK_TASKS = [
-  { id: 1, title: "Таңғы 30 мин — телефон жоқ", description: "No phone for first 30m", daily: true, code: "MORNING_NO_PHONE_30M" },
-  { id: 2, title: "Ұйқыға 30 мин қалғанда — телефон жоқ", description: "No phone 30m before sleep", daily: true, code: "EVENING_NO_PHONE_30M" },
-  { id: 3, title: "15 мин жаяу жүру", description: "Walk 15 minutes", daily: true, code: "WALK_15M" },
-  { id: 4, title: "5 мин созылу", description: "Stretch 5 minutes", daily: true, code: "STRETCH_5M" },
-];
-
-function parseToggleResponse(res) {
-  const row = Array.isArray(res) ? res[0] : res;
-  return row && typeof row?.completed === "boolean" ? row.completed : true;
-}
-
-export async function fetchPQTasks({ fallback = true } = {}) {
-  try {
-    const list = await request("/api/pq/tasks");
-    return Array.isArray(list) ? list : [];
-  } catch (e) {
-    if (fallback && (e.status === 0 || e.status === 401 || e.status === 403 || e.status === 404)) {
-      return PQ_FALLBACK_TASKS;
+  let lastErr;
+  for (const c of candidates) {
+    try {
+      // пропускаем варианты, где тело пустое/бессмысленное
+      if (c.body && Object.values(c.body).every((v) => v === undefined)) continue;
+      const res = await postJSON(c.path, c.body, opts);
+      return res;
+    } catch (e) {
+      lastErr = e;
+      // пробуем следующий маршрут
     }
-    throw e;
   }
+  throw lastErr || new Error("togglePQTask: ни один из вариантов маршрута не сработал");
 }
 
-export async function togglePQTask(taskId, day) {
-  const path = `/api/pq/toggle/${taskId}?day=${encodeURIComponent(day)}`;
-  try {
-    const res = await request(path, { method: "POST", body: {} });
-    return parseToggleResponse(res);
-  } catch (_) {
-    const res2 = await request(path, { method: "GET" });
-    return parseToggleResponse(res2);
-  }
-}
-
-const pqApi = { fetchPQTasks, togglePQTask };
-export default pqApi;
+// оставляем удобный default (если он использовался)
+export default { fetchPQTasks, submitPQAnswer, fetchPQSummary, togglePQTask };

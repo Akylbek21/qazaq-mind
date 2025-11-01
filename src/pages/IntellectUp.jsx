@@ -215,11 +215,8 @@ export default function IntellectUp() {
 
     return (
       <>
-        <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
-          className="text-3xl md:text-4xl font-extrabold text-slate-900 text-center">
-          IntellectUp — IQ Challenge
-        </motion.h1>
-        <p className="mt-2 text-center text-slate-600">Барлық сұрақтар бэктен жүктеледі.</p>
+        
+       
 
         {/* Intro */}
         {!started && !finished && step === 0 && (
@@ -382,7 +379,7 @@ export default function IntellectUp() {
         className="text-3xl md:text-4xl font-extrabold text-slate-900 text-center">
         IntellectUp — Danalyq Challenge (IQ)
       </motion.h1>
-      <p className="mt-2 text-center text-slate-600">Ешқандай мок жоқ. Барлығы — бэктен.</p>
+      
 
       <div className="mt-8">{renderIQ()}</div>
 
