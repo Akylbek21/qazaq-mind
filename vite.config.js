@@ -1,27 +1,56 @@
 // vite.config.js
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import path from 'path';
+import { defineConfig, loadEnv } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+
+  // Бэкенд-таргет: из env или дефолт. Убираем хвостовые слэши.
+  const rawTarget = env.VITE_QAZAQMIND_SERVICE || "http://85.202.193.138:8087";
+  const API_TARGET = (/^https?:\/\//.test(rawTarget) ? rawTarget : `http://${rawTarget}`).replace(/\/+$/, "");
+
+  return {
+    plugins: [react()],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "src"),
+      },
     },
-  },
-  server: {
-    host: true,       // жергілікті желіден да қолжетімді
-    port: 5173,       // сен қойған порт
-    open: true,       // автоматты ашу
-  },
-  preview: {
-    host: true,
-    port: 5173,       // қаласаң 4173 деп бөлек қылуға болады
-    open: true,
-  },
-  build: {
-    sourcemap: true,  // дебагқа ыңғайлы
-    outDir: 'dist',
-  },
+    server: {
+      host: true,
+      port: 5173,
+      open: true,
+      strictPort: true,
+      // В dev проксируем /api -> на ваш backend
+      proxy: {
+        "/api": {
+          target: API_TARGET,
+          changeOrigin: true,
+          secure: false,
+          ws: true,
+          /**
+           * Устраняем редкий кейс, когда путь получается /api/api/...
+           * Пример: "/api/api/v1/quiz/iq" -> "/api/v1/quiz/iq"
+           */
+          rewrite: (p) => p.replace(/^\/api\/(?=api\/)/, "/"),
+        },
+      },
+      // На всякий случай, если прямые запросы придут на dev-сервер
+      cors: true,
+    },
+    preview: {
+      host: true,
+      port: 4173,
+      open: true,
+    },
+    build: {
+      outDir: "dist",
+      sourcemap: true,
+      chunkSizeWarningLimit: 1000,
+    },
+  };
 });

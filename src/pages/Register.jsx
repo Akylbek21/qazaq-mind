@@ -1,151 +1,220 @@
-import React, { useMemo, useRef, useState } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+// src/pages/Register.jsx
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAuth } from "../auth/AuthContext";
 
-const ROLES = [
-  { value: "student", label: "Оқушы (student)" },
-  { value: "teacher", label: "Мұғалім (teacher)" },
-  { value: "parent",  label: "Ата-ана (parent)" },
-];
+const EyeIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+      d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.355 5 12 5c4.645 0 8.577 2.51 9.964 6.678.07.214.07.43 0 .644C20.577 16.49 16.645 19 12 19c-4.645 0-8.577-2.51-9.964-6.678Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+      d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+  </svg>
+);
+
+const EyeOffIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+      d="M6.94 6.94 3 3m0 0 18 18M3 3l4.243 4.243M12 5c4.645 0 8.577 2.51 9.964 6.678.07.214.07.43 0 .644-.457 1.38-1.186 2.62-2.134 3.667M9 9a3 3 0 0 0 4.243 4.243" />
+  </svg>
+);
 
 export default function Register() {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const fromPath = location.state?.from?.pathname;
-  const reason = searchParams.get("reason");
-  const isOnRegister = location.pathname === "/register";
+  const nav = useNavigate();
+  const { register } = useAuth(); // из AuthContext: http.post('/api/auth/register', { username, password, role })
 
-  // Form refs: батырма басылғанда бірінші өріске фокус
-  const nameRef = useRef(null);
+  const [form, setForm] = useState({
+    username: "",
+    password: "",
+    confirm: "",
+    role: "STUDENT",
+  });
 
-  const [role, setRole] = useState("student");
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [school, setSchool] = useState("");
-  const [agree, setAgree] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
-
-  const targetAfterLogin = useMemo(() => {
-    if (fromPath) return fromPath;
-    if (role === "teacher") return "/teacher";
-    if (role === "parent")  return "/parent";
-    return "/student";
-  }, [fromPath, role]);
+  const [showPass, setShowPass] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    if (!fullName.trim()) return setError("Аты-жөніңізді жазыңыз");
-    if (!phone.trim())    return setError("Телефон номеріңізді жазыңыз");
-    if (!agree)           return setError("Ережелермен келісіңіз");
+    setErr("");
+
+    if (!form.username.trim()) return setErr("Укажите логин.");
+    if (form.password.length < 6) return setErr("Пароль должен быть не короче 6 символов.");
+    if (form.password !== form.confirm) return setErr("Пароли не совпадают.");
+
+    setLoading(true);
     try {
-      setBusy(true);
-      const payload = {
-        id: crypto.randomUUID(),
-        role, fullName, phone, school: school || null,
-        createdAt: new Date().toISOString(),
-      };
-      login(payload);
-      navigate(targetAfterLogin, { replace: true });
+      await register({
+        username: form.username.trim(),
+        password: form.password,
+        role: form.role, // STUDENT | TEACHER | PARENT (UPPERCASE)
+      });
+      nav("/login?registered=1", { replace: true });
+    } catch (e) {
+      setErr(e?.message || "Не удалось зарегистрировать пользователя.");
     } finally {
-      setBusy(false);
+      setLoading(false);
     }
   };
 
-  const handleRegisterClick = (e) => {
-    if (isOnRegister) {
-      // Форманы көрсету/фокус
-      e.preventDefault();
-      document.getElementById("register-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      setTimeout(() => nameRef.current?.focus(), 250);
-    }
-    // Егер басқа бетте болса — Link өзі /register?reason=auth-қа апарады
+  const RoleButton = ({ value, label }) => {
+    const active = form.role === value;
+    return (
+      <button
+        type="button"
+        onClick={() => setForm((f) => ({ ...f, role: value }))}
+        className={[
+          "flex-1 rounded-xl px-3 py-2 text-sm font-medium transition",
+          active
+            ? "bg-teal-600 text-white shadow"
+            : "bg-white/70 text-slate-700 hover:bg-slate-100 border border-slate-200",
+        ].join(" ")}
+      >
+        {label}
+      </button>
+    );
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 p-4">
-      <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-6 md:p-8">
-        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-1">Тіркеу</h1>
-        <p className="text-slate-600 mb-4">Рөлді таңдаңыз және негізгі ақпаратты толтырыңыз.</p>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50">
+      {/* Декор */}
+      <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/30 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 right-10 h-72 w-72 rounded-full bg-teal-300/30 blur-3xl" />
 
-       
-
-        <form id="register-form" onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Рөлі</label>
-            <div className="grid grid-cols-3 gap-2">
-              {ROLES.map((r) => (
-                <button
-                  type="button"
-                  key={r.value}
-                  onClick={() => setRole(r.value)}
-                  className={`px-3 py-2 rounded-xl border text-sm font-medium transition hover:shadow ${
-                    role === r.value ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-slate-50"
-                  }`}
-                >
-                  {r.label}
-                </button>
-              ))}
+      <div className="relative z-20 mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          className="w-full max-w-md"
+        >
+          <div className="pointer-events-auto rounded-3xl border border-white/60 bg-white/70 p-8 shadow-2xl backdrop-blur-xl">
+            {/* Заголовок */}
+            <div className="mb-6 text-center">
+              <h1 className="bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+                Qazaq Mind
+              </h1>
+              <p className="mt-1 text-sm text-slate-600">Тіркеу / Регистрация</p>
             </div>
+
+            {/* Ошибки */}
+            {err && (
+              <div className="mb-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {err}
+              </div>
+            )}
+
+            {/* Форма */}
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Логин
+                </label>
+                <input
+                  className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-slate-900 outline-none transition focus:border-teal-400 focus:bg-white focus:shadow-[0_0_0_4px_rgba(13,148,136,0.08)]"
+                  placeholder="username"
+                  value={form.username}
+                  onChange={(e) => setForm({ ...form, username: e.target.value })}
+                  autoComplete="username"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Пароль
+                </label>
+                <div className="relative">
+                  <input
+                    className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 pr-12 text-slate-900 outline-none transition focus:border-teal-400 focus:bg-white focus:shadow-[0_0_0_4px_rgba(13,148,136,0.08)]"
+                    placeholder="password"
+                    type={showPass ? "text" : "password"}
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass((s) => !s)}
+                    className="absolute inset-y-0 right-3 my-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+                    aria-label={showPass ? "Скрыть пароль" : "Показать пароль"}
+                  >
+                    {showPass ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-slate-500">Минимум 6 символов.</p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Подтверждение пароля
+                </label>
+                <div className="relative">
+                  <input
+                    className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 pr-12 text-slate-900 outline-none transition focus:border-teal-400 focus:bg-white focus:shadow-[0_0_0_4px_rgba(13,148,136,0.08)]"
+                    placeholder="repeat password"
+                    type={showConfirm ? "text" : "password"}
+                    value={form.confirm}
+                    onChange={(e) => setForm({ ...form, confirm: e.target.value })}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((s) => !s)}
+                    className="absolute inset-y-0 right-3 my-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+                    aria-label={showConfirm ? "Скрыть пароль" : "Показать пароль"}
+                  >
+                    {showConfirm ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Роль */}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Роль
+                </label>
+                <div className="flex gap-2">
+                  <RoleButton value="STUDENT" label="Студент" />
+                  <RoleButton value="TEACHER" label="Мұғалім / Teacher" />
+                  <RoleButton value="PARENT" label="Ата-ана / Parent" />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-cyan-600 px-5 py-3 font-semibold text-white shadow-lg transition hover:from-teal-500 hover:to-cyan-500 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {loading ? (
+                  <>
+                    <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25 fill-transparent" />
+                      <path d="M4 12a8 8 0 0 1 8-8" className="opacity-75" fill="currentColor" />
+                    </svg>
+                    Тіркеу...
+                  </>
+                ) : (
+                  "Зарегистрироваться"
+                )}
+              </button>
+            </form>
+
+            {/* Низ карточки */}
+            <nav className="mt-5 flex items-center justify-between text-sm text-slate-600 pointer-events-auto">
+              <Link to="/login" className="rounded-lg px-2 py-1 text-teал-700 hover:bg-teal-50 transition">
+                Уже есть аккаунт? Войти
+              </Link>
+              <span className="text-slate-400">•</span>
+              <span className="rounded-lg px-2 py-1 text-slate-400 cursor-default">Правила сервиса</span>
+            </nav>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Аты-жөні</label>
-            <input
-              ref={nameRef}
-              type="text"
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
-              placeholder="Аты-жөніңіз"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-            />
+          <div className="mt-6 text-center text-xs text-slate-500">
+            © {new Date().getFullYear()} Qazaq Mind · Human-centric learning
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">Телефон</label>
-              <input
-                type="tel"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
-                placeholder="8xxx…"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Мектеп (қалауыңызша)</label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
-                placeholder="№XX мектеп, сыныбыңыз"
-                value={school}
-                onChange={(e) => setSchool(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <label className="flex items-start gap-2 text-sm">
-            <input type="checkbox" className="mt-1" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
-            <span>
-              Мен <b>пайдалану ережелерімен</b> және <b>деректерді өңдеумен</b> келісемін.
-            </span>
-          </label>
-
-          {error && <div className="text-red-600 text-sm">{error}</div>}
-
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full py-3 rounded-xl bg-slate-900 text-white font-semibold hover:opacity-95 transition disabled:opacity-60"
-          >
-            {busy ? "Тіркелу…" : "Тіркелу"}
-          </button>
-        </form>
+        </motion.div>
       </div>
     </div>
   );

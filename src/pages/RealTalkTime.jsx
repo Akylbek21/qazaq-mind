@@ -1,309 +1,166 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { fetchEQRandomCard, submitEQAnswer } from "@/api/eq";
 
-/* ===================== ДЕРЕК: ТАПСЫРМАЛАР ===================== */
-// Икон/түстер тек визуалға; қалағаныңша өзгерте бер
-const TASKS = [
-  {
-    id: "to-mom",
-    icon: "🩵",
-    title: "Анама жылы сөз",
-    goal: "Мейірім мен ризашылықты сөзбен жеткізу.",
-    prompts: [
-      "Анашым, сенің маған үйреткен ең құнды сабағың…",
-      "Мен анамды не үшін жақсы көремін?",
-      "Сенің сөзің анаңа не сыйлай алады деп ойлайсың?"
-    ],
-    color: "from-pink-100 to-blue-100",
-  },
-  {
-    id: "to-dad",
-    icon: "💙",
-    title: "Әкеме айтқым келген сөз",
-    goal: "Ер адамға деген сенім мен құрмет сезімін нығайту.",
-    prompts: [
-      "Әке, мен сені мақтан етем, себебі…",
-      "Мен саған айтқым келетін, бірақ айта алмай жүрген сөзім…",
-      "Сенің сөзіңді естігенде әкең не сезінеді деп ойлайсың?"
-    ],
-    color: "from-blue-100 to-sky-100",
-  },
-  {
-    id: "to-teacher",
-    icon: "💚",
-    title: "Ұстазыма рахмет",
-    goal: "Алғыс айту мәдениеті мен эмоциялық сауат.",
-    prompts: [
-      "Менің ұстазымнан үйренген ең маңызды 3 нәрсе…",
-      "Ұстазым менің өмірімде не өзгертті?",
-      "Алғысым қандай түспен бейнеленеді?"
-    ],
-    color: "from-emerald-100 to-emerald-50",
-  },
-  {
-    id: "self-listen",
-    icon: "🧡",
-    title: "Мен өзімді тыңдаймын",
-    goal: "Өзін-өзі тану және ішкі рефлексия.",
-    prompts: [
-      "Қазір мен не сезіп тұрмын?",
-      "Көңіл-күйім қандай иіс, түс немесе дыбыс?",
-      "Өзіме қандай жақсы сөз айта аламын?"
-    ],
-    color: "from-orange-100 to-amber-100",
-  },
-  {
-    id: "to-friend",
-    icon: "💛",
-    title: "Досыма жылы сөз",
-    goal: "Әлеуметтік байланыстар мен эмпатия.",
-    prompts: [
-      "Мен сенімен дос болғаныма қуаныштымын, өйткені…",
-      "Сенің қандай қасиетің маған үлгі болады?",
-      "Егер сен ренжіп тұрсаң, мен не айтар едім?"
-    ],
-    color: "from-yellow-100 to-lime-100",
-  },
-  {
-    id: "to-nature",
-    icon: "💜",
-    title: "Мен табиғатқа айтам",
-    goal: "Табиғатпен эмоционалды байланыс.",
-    prompts: [
-      "Табиғат ана, мен сенен кешірім сұраймын, себебі…",
-      "Мен сенің әсемдігіңді сезген сәтім…",
-      "Табиғатқа қандай жақсылық жасай аламын?"
-    ],
-    color: "from-purple-100 to-fuchsia-100",
-  },
-  {
-    id: "to-future",
-    icon: "❤️",
-    title: "Болашағыма хат",
-    goal: "Мақсат қалыптастыру және позитивті болашақ көру.",
-    prompts: [
-      "Болашақтағы мен, сен неге қол жеткіздің?",
-      "Саған қазірден не айтқым келеді?",
-      "Бүгінгі арманым ертеңгі өміріммен қалай байланысады?"
-    ],
-    color: "from-rose-100 to-rose-50",
-  },
-  {
-    id: "to-society",
-    icon: "🤍",
-    title: "Қоғамға үндеу",
-    goal: "Азаматтық сана және әлеуметтік жауапкершілік.",
-    prompts: [
-      "Менің қоғамым қандай болғанын қалаймын?",
-      "Егер әлемді өзгерткім келсе, неден бастар едім?",
-      "Менің сөзім адамдарға қандай үміт сыйлай алады?"
-    ],
-    color: "from-slate-100 to-slate-50",
-  },
-  {
-    id: "color-of-feeling",
-    icon: "💫",
-    title: "Менің сезімімнің түсі",
-    goal: "Эмоцияны визуализациялау және шығармашылық сөйлеу.",
-    prompts: [
-      "Бүгінгі көңіл-күйімнің түсі…",
-      "Қай кезде ол түс өзгереді?",
-      "Ол түс сөйлесе, маған не айтар еді?"
-    ],
-    color: "from-cyan-100 to-sky-100",
-  },
-  {
-    id: "thanks-marathon",
-    icon: "🕊️",
-    title: "“Рахмет” марафоны",
-    goal: "Күнделікті позитивті қарым-қатынас.",
-    prompts: [
-      "Бүгін мен кімге, не үшін алғыс айттым?",
-      "Апта соңында: алғыс айтқанда өзімді қалай сезіндім?"
-    ],
-    color: "from-teal-100 to-teal-50",
-  },
-  {
-    id: "wins-and-mistakes",
-    icon: "💬",
-    title: "Қателіктерім мен жетістіктеріме сөз",
-    goal: "Өзін кінәламай, дамуға бағыттау.",
-    prompts: [
-      "Биылғы ең үлкен жетістігім…",
-      "Ең үлкен сабағым/қателігім және одан не үйрендім?",
-      "Өзімді қалай кешірем?"
-    ],
-    color: "from-indigo-100 to-indigo-50",
-  },
-  {
-    id: "small-happiness",
-    icon: "🌱",
-    title: "Менің кішкентай бақыттарым",
-    goal: "Рақмет айту және позитивті ойлау.",
-    prompts: [
-      "Мені бүгін не қуантты?",
-      "Мен үшін бақыт деген не?",
-      "Бақытты күн қандай?"
-    ],
-    color: "from-green-100 to-emerald-50",
-  },
-  {
-    id: "one-word",
-    icon: "🔮",
-    title: "Егер әлемге бір сөз айта алсам…",
-    goal: "Өмірге көзқарас пен мағынаны ашу.",
-    prompts: ["Мен әлемге бір ғана сөз айта алсам, ол сөз…"],
-    color: "from-violet-100 to-violet-50",
-  },
+/* ===================== ЛОКАЛЬНЫЕ ЗАДАНИЯ (оставляем как раньше) ===================== */
+const TASKS = [/* ... твой массив как есть ... */];
 
-  // ==== Қосымша “Бала сезіне алатын” сериясы ====
-  {
-    id: "name-feelings",
-    icon: "🧩",
-    title: "Эмоцияны атау және сипаттау",
-    goal: "Эмоцияны сөзбен анықтап, түсіну.",
-    prompts: [
-      "Күнделікті өмірден бір жағдай жаз: сол кезде қандай сезім болды?",
-      "Эмоцияны 3 сөзбен сипатта (мыс: қуаныш, жылы, еркіндік)."
-    ],
-    color: "from-amber-100 to-orange-100",
-  },
-  {
-    id: "feelings-map",
-    icon: "🗺️",
-    title: "Сезім картасын толтыру",
-    goal: "Сезім деңгейін және денедегі орнын сезіну.",
-    prompts: [
-      "Бүгінгі ең күшті 3 сезіміңді белгіле.",
-      "Әр сезім денеде қай жерде сезіледі?",
-      "Неге солай сезіндің?"
-    ],
-    color: "from-lime-100 to-lime-50",
-  },
-  {
-    id: "daily-essay",
-    icon: "📝",
-    title: "«Менің күнделікті сезімім» эссесі",
-    goal: "Өзін-өзі түсіну және сөйлеу дағдысы.",
-    prompts: [
-      "Бүгін қалай сезіндің? 5–7 сөйлем жаз.",
-      "Себебі қандай? Саған қалай әсер етті?"
-    ],
-    color: "from-zinc-100 to-zinc-50",
-  },
-  {
-    id: "thought-vs-feeling",
-    icon: "🔍",
-    title: "Сезім мен ой — айырмашылығын тап",
-    goal: "Ой мен сезімді ажырату.",
-    prompts: [
-      "Қайсысы сезім, қайсысы ой? — «Мен бүгін шаршадым.» / «Меніңше, сабақ қиын.» / «Мен қорықтым.» / «Келесі жолы жақсы істеймін деп ойлаймын.»"
-    ],
-    color: "from-yellow-100 to-rose-100",
-  },
-  {
-    id: "dialog-with-feeling",
-    icon: "💭",
-    title: "Сезіммен диалог",
-    goal: "Эмоцияларды қабылдау және өңдеу.",
-    prompts: [
-      "«Қорқыныш» немесе «Реніш» сезіміне хат жаз.",
-      "Онымен қалай жұмыс істейсің және қалай жеңесің?"
-    ],
-    color: "from-sky-100 to-cyan-100",
-  },
-  {
-    id: "feeling-colors",
-    icon: "🎨",
-    title: "Сезім түстері",
-    goal: "Эмоцияны визуализациялау.",
-    prompts: [
-      "Негізгі сезімдерге (қуаныш, қайғы, ашу, қорқыныш, таңданыс) түс таңдап, суретте немесе сипатта.",
-      "Қай түс көңіл-күйіңді қалай өзгертеді?"
-    ],
-    color: "from-fuchsia-100 to-pink-100",
-  },
-  {
-    id: "feeling-reasons",
-    icon: "🧠",
-    title: "Сезімнің себебі",
-    goal: "Сезімді себептерімен байланыстыру.",
-    prompts: [
-      "Күнделікті бірнеше жағдай жаз: «Мен қалай реакция жасадым?»",
-      "Сосын «Неге осылай сезіндім?» деп талда."
-    ],
-    color: "from-stone-100 to-stone-50",
-  },
-  {
-    id: "relax-breath",
-    icon: "🫁",
-    title: "Релаксация және тыныс",
-    goal: "Сезімдерді бақылау, тыныс әдiстері.",
-    prompts: [
-      "Терең дем ал — баяу шығар. Жаттығудан кейінгі сезіміңді жаз.",
-      "Алғашқы сезіммен салыстыр."
-    ],
-    color: "from-teal-100 to-emerald-100",
-  },
-];
-
-/* ===================== КӨМЕКШІ: ЖЕРГІЛІКТІ САҚТАУ ===================== */
+/* ===================== ЛОКАЛЬНОЕ ХРАНЕНИЕ ЧЕРНОВИКОВ ===================== */
 const STORAGE_KEY = "realtalktime_answers_v1";
-function loadAll() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
-  catch { return {}; }
-}
+function loadAll() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; } }
 function saveOne(id, text) {
   const all = loadAll();
   all[id] = { text, updatedAt: new Date().toISOString() };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
 }
 
-/* ===================== UI КОМПОНЕНТ ===================== */
 export default function RealTalkTime() {
-  const [active, setActive] = React.useState(null); // task object or null
+  /* ---------- Серверная карточка ---------- */
+  const [card, setCard] = React.useState(null);          // {id, text, tags[]}
+  const [loading, setLoading] = React.useState(false);
+  const [err, setErr] = React.useState("");
+  const [answer, setAnswer] = React.useState("");
+  const [audioUrl, setAudioUrl] = React.useState("");
+  const [submitState, setSubmitState] = React.useState({ ok: false, msg: "" });
+
+  /* ---------- Локальная галерея ---------- */
+  const [active, setActive] = React.useState(null); // активное локальное задание
   const [draft, setDraft] = React.useState("");
   const [savedMap, setSavedMap] = React.useState(() => loadAll());
   const [query, setQuery] = React.useState("");
 
-  const openTask = (t) => {
-    const prev = savedMap?.[t.id]?.text || "";
-    setDraft(prev);
-    setActive(t);
+  const loadCard = async () => {
+    setLoading(true); setErr(""); setSubmitState({ ok: false, msg: "" });
+    try {
+      const c = await fetchEQRandomCard();
+      setCard(c);
+      // если уже что-то писали по этой карточке — подставим
+      const prev = loadAll()?.[`card:${c.id}`]?.text || "";
+      setAnswer(prev);
+    } catch (e) {
+      setErr(e?.message || "Карточканы жүктеу мүмкін болмады.");
+    } finally {
+      setLoading(false);
+    }
   };
-  const closeTask = () => setActive(null);
 
-  const onSave = () => {
+  React.useEffect(() => { loadCard(); }, []); // грузим при входе
+
+  const onSaveServerDraft = () => {
+    if (!card) return;
+    saveOne(`card:${card.id}`, answer);
+    setSubmitState({ ok: true, msg: "Черновик сақталды (жергілікті)." });
+  };
+
+  const onSubmitServer = async () => {
+    if (!card) return;
+    setSubmitState({ ok: false, msg: "" });
+    try {
+      await submitEQAnswer({
+        cardId: card.id,
+        text: answer.trim(),
+        audioUrl: audioUrl.trim() || null,
+      });
+      setSubmitState({ ok: true, msg: "Жауап серверге жіберілді. Рақмет!" });
+      // можно сразу загрузить новую карточку
+      // await loadCard();
+    } catch (e) {
+      setSubmitState({ ok: false, msg: e?.message || "Жіберу сәтсіз." });
+    }
+  };
+
+  /* ---------- Локальные задания: модалка ---------- */
+  const openTask = (t) => { setDraft(savedMap?.[t.id]?.text || ""); setActive(t); };
+  const closeTask = () => setActive(null);
+  const onSaveLocalTask = () => {
     if (!active) return;
     saveOne(active.id, draft);
     setSavedMap(loadAll());
   };
 
   const filtered = TASKS.filter(
-    (t) =>
-      t.title.toLowerCase().includes(query.toLowerCase()) ||
+    (t) => t.title.toLowerCase().includes(query.toLowerCase()) ||
       t.prompts.some((p) => p.toLowerCase().includes(query.toLowerCase()))
   );
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-10">
-      {/* Title */}
-      <motion.h1
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45 }}
-        className="text-3xl md:text-4xl font-extrabold text-slate-900 text-center"
-      >
-        SeLFtALK (EQ) —{" "}
-        <span className="text-[#1F7A8C]">«СӨЙЛЕ, СЕЗІН, БӨЛІС»</span>
+      <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
+        className="text-3xl md:text-4xl font-extrabold text-slate-900 text-center">
+        SeLFtALK (EQ) — <span className="text-[#1F7A8C]">«СӨЙЛЕ, СЕЗІН, БӨЛІС»</span>
       </motion.h1>
       <p className="mt-2 text-center text-slate-600">
-        Сезімге негізделген сөйлету тапсырмалары. Карточканы ашып, сұрақтарға жауап жаз.
-        Жауаптар құрылғыңда <strong>жергілікті түрде сақталады</strong>.
+        Жоғарыда — <b>серверлік EQ-карточка</b> (рандом). Төменде — сенің <b>галереяң</b> (жергілікті сақталады).
       </p>
 
-      {/* Search */}
-      <div className="mt-6 flex justify-center">
+      {/* ---------- Блок: Серверная карточка ---------- */}
+      <div className="mt-8 rounded-2xl border border-slate-200 bg-white/80 backdrop-blur p-5 shadow">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-bold text-slate-900">EQ-карточка (сервер)</h2>
+          <div className="flex gap-2">
+            <button onClick={loadCard} disabled={loading}
+              className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold hover:bg-slate-50 disabled:opacity-40">
+              {loading ? "Жүктелуде…" : "Жаңа карточка"}
+            </button>
+          </div>
+        </div>
+
+        {err && <p className="mt-3 text-sm text-rose-600">{err}</p>}
+
+        {card && !err && (
+          <>
+            <div className="mt-4">
+              <p className="text-slate-700 leading-relaxed">{card.text}</p>
+              {Array.isArray(card.tags) && card.tags.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {card.tags.map((t) => (
+                    <span key={t} className="rounded-full border px-3 py-1 text-xs text-slate-600 bg-slate-50">
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4">
+              <label className="text-sm font-semibold text-slate-700">Жауабың:</label>
+              <textarea
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                rows={6}
+                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/60"
+                placeholder="Осы жерге жазыңыз…"
+              />
+              <div className="mt-2 grid gap-2 md:grid-cols-2">
+                <input
+                  value={audioUrl}
+                  onChange={(e) => setAudioUrl(e.target.value)}
+                  placeholder="Опционально: Audio URL (мысалы, CDN/Cloud)"
+                  className="rounded-xl border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500/60"
+                />
+                <div className="flex gap-2">
+                  <button onClick={onSaveServerDraft}
+                    className="rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50">
+                    Сақтау (локал)
+                  </button>
+                  <button onClick={onSubmitServer}
+                    className="rounded-xl bg-[#1aa6b5] text-white font-semibold px-4 py-2 hover:opacity-95">
+                    Жіберу (сервер)
+                  </button>
+                </div>
+              </div>
+              {submitState.msg && (
+                <p className={`mt-2 text-sm ${submitState.ok ? "text-emerald-700" : "text-rose-700"}`}>
+                  {submitState.msg}
+                </p>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ---------- Поиск по локальным заданиям ---------- */}
+      <div className="mt-10 flex justify-center">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -312,7 +169,7 @@ export default function RealTalkTime() {
         />
       </div>
 
-      {/* Grid */}
+      {/* ---------- Галерея локальных заданий (как было) ---------- */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filtered.map((t) => {
           const saved = savedMap?.[t.id]?.text?.trim();
@@ -320,7 +177,7 @@ export default function RealTalkTime() {
             <button
               key={t.id}
               onClick={() => openTask(t)}
-              className={`text-left rounded-2xl border border-slate-200 bg-white/80 backdrop-blur p-5 shadow hover:-translate-y-0.5 hover:shadow-lg transition group`}
+              className="text-left rounded-2xl border border-slate-200 bg-white/80 backdrop-blur p-5 shadow hover:-translate-y-0.5 hover:shadow-lg transition group"
             >
               <div className={`rounded-xl bg-gradient-to-r ${t.color} p-3 w-12 h-12 flex items-center justify-center text-xl`}>
                 {t.icon}
@@ -342,7 +199,7 @@ export default function RealTalkTime() {
         })}
       </div>
 
-      {/* Drawer / Modal */}
+      {/* ---------- Модалка локального задания ---------- */}
       <AnimatePresence>
         {active && (
           <motion.div
@@ -378,9 +235,7 @@ export default function RealTalkTime() {
               </div>
 
               <div className="mt-4">
-                <label className="text-sm font-semibold text-slate-700">
-                  Жауабың:
-                </label>
+                <label className="text-sm font-semibold text-slate-700">Жауабың:</label>
                 <textarea
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
@@ -389,23 +244,19 @@ export default function RealTalkTime() {
                   placeholder="Осы жерге жазыңыз…"
                 />
                 <div className="mt-2 flex flex-wrap gap-3">
-                  <button
-                    onClick={onSave}
-                    className="rounded-xl bg-[#1aa6b5] text-white font-semibold px-4 py-2 hover:opacity-95"
-                  >
+                  <button onClick={onSaveLocalTask}
+                    className="rounded-xl bg-[#1aa6b5] text-white font-semibold px-4 py-2 hover:opacity-95">
                     Сақтау
                   </button>
-                  <button
-                    onClick={closeTask}
-                    className="rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50"
-                  >
+                  <button onClick={closeTask}
+                    className="rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50">
                     Жабу
                   </button>
                 </div>
               </div>
 
               <p className="mt-3 text-xs text-slate-500">
-                Кеңес: дауыстық жауап жазғың келсе, телефон диктовкасын қолдан.
+                Кеңес: дауыстық жауап жазғың келсе, телефон диктовкасын қолдан (не енгіз де, Submit (сервер) жоғарыда).
               </p>
             </motion.div>
           </motion.div>

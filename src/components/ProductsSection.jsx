@@ -11,14 +11,14 @@ import {
 } from "./Icons";
 
 const ProductsSection = ({ onModuleClick }) => {
-  const MODULE_ROUTES = {
-    iq: "/intellectup",
-    eq: "/realtalktime",
-      teacher: "/console",   // ✅
-      atalink: "/atalink",   // ✅
-      sq: "/thinkhub",
-      pq: "/lifecharge",       // ✅ Digital Detox беті
-  };
+   const MODULE_ROUTES = {
+   iq: "/intellect-up",
+   eq: "/realtalk",
+   teacher: "/teacher-console",
+   atalink: "/atalink",
+  sq: "/thinkhub",
+   pq: "/lifecharge",
+ };
 
   const products = [
     {

@@ -1,15 +1,15 @@
 // =============================================
 // FILE: src/App.jsx
-// Публичная «О сайте» — всегда доступна.
-// Остальные страницы — только после регистрации.
-// Доступ по ролям для специальных разделов.
+// Публичная «О сайте» — доступна всем.
+// IntellectUp (Danalyq Challenge) — ПУБЛИЧНО.
+// Остальные модули — только после авторизации.
 // =============================================
-import React from "react";
-import { Routes, Route } from "react-router-dom";
+import React, { Suspense, lazy } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 
-// Общие секции лендинга
+// --- Публичные секции лендинга ---
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import PitchSection from "./components/PitchSection";
@@ -21,21 +21,22 @@ import ScenariosSection from "./components/ScenariosSection";
 import FinalCtaSection from "./components/FinalCtaSection";
 import Footer from "./components/Footer";
 
-// Страницы проекта (модули)
-import RealTalkTime from "./pages/RealTalkTime";
-import IntellectUp from "./pages/IntellectUp";
-import TeacherConsole from "./pages/TeacherConsole";
-import HistoricalQuiz from "./pages/HistoricalQuiz";
-import LitQuiz from "./pages/LitQuiz";
-import ThinkHub from "./pages/ThinkHub";
-import LifeCharge from "./pages/LifeCharge";
-import AtaLink from "./pages/AtaLink";
+// --- Страницы (ленивые импорты) ---
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
 
-// Новые страницы (аутентификация и домашние по ролям)
-import Register from "./pages/Register";
-import StudentHome from "./pages/StudentHome";
-import TeacherHome from "./pages/TeacherHome";
-import ParentHome from "./pages/ParentHome";
+const StudentHome = lazy(() => import("./pages/StudentHome"));
+const TeacherHome = lazy(() => import("./pages/TeacherHome"));
+const ParentHome = lazy(() => import("./pages/ParentHome"));
+
+const RealTalkTime = lazy(() => import("./pages/RealTalkTime"));
+const IntellectUp = lazy(() => import("./pages/IntellectUp"));
+const TeacherConsole = lazy(() => import("./pages/TeacherConsole"));
+const HistoricalQuiz = lazy(() => import("./pages/HistoricalQuiz"));
+const LitQuiz = lazy(() => import("./pages/LitQuiz"));
+const ThinkHub = lazy(() => import("./pages/ThinkHub"));
+const LifeCharge = lazy(() => import("./pages/LifeCharge"));
+const AtaLink = lazy(() => import("./pages/AtaLink"));
 
 // ---------- Публичная страница «О сайте» ----------
 function Landing() {
@@ -69,120 +70,125 @@ function NotFound() {
   );
 }
 
+// Общий fallback для ленивых страниц
+function Fallback() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center text-slate-600">
+      Жүктеліп жатыр...
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
-      <Routes>
-        {/* Публичные */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/register" element={<Register />} />
+      <Suspense fallback={<Fallback />}>
+        <Routes>
+          {/* Публичные */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* Домашние по ролям */}
-        <Route
-          path="/student"
-          element={
-            <ProtectedRoute allow={["student"]}>
-              <StudentHome />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher"
-          element={
-            <ProtectedRoute allow={["teacher"]}>
-              <TeacherHome />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/parent"
-          element={
-            <ProtectedRoute allow={["parent"]}>
-              <ParentHome />
-            </ProtectedRoute>
-          }
-        />
+          {/* ⚡ Danalyq Challenge (IQ) — ПУБЛИЧНО */}
+          <Route path="/intellect-up" element={<IntellectUp />} />
+          {/* Алиасы-редиректы на /intellect-up */}
+          <Route path="/intellectup" element={<Navigate to="/intellect-up" replace />} />
+          <Route path="/IntellectUp" element={<Navigate to="/intellect-up" replace />} />
+          <Route path="/danalyq" element={<Navigate to="/intellect-up" replace />} />
+          <Route path="/Danalyq" element={<Navigate to="/intellect-up" replace />} />
+          <Route path="/danalyq-challenge" element={<Navigate to="/intellect-up" replace />} />
+          <Route path="/Danalyq-Challenge" element={<Navigate to="/intellect-up" replace />} />
 
-        {/* Модули: доступны всем зарегистрированным */}
-        <Route
-          path="/realtalk"
-          element={
-            <ProtectedRoute>
-              <RealTalkTime />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/intellect-up"
-          element={
-            <ProtectedRoute>
-              <IntellectUp />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/historical-quiz"
-          element={
-            <ProtectedRoute>
-              <HistoricalQuiz />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/quiz/:slug"
-          element={
-            <ProtectedRoute>
-              <LitQuiz />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/thinkhub"
-          element={
-            <ProtectedRoute>
-              <ThinkHub />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/lifecharge"
-          element={
-            <ProtectedRoute>
-              <LifeCharge />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/atalink"
-          element={
-            <ProtectedRoute>
-              <AtaLink />
-            </ProtectedRoute>
-          }
-        />
+          {/* Домашние по ролям (требуется авторизация) */}
+          <Route
+            path="/student"
+            element={
+              <ProtectedRoute allow={["student"]}>
+                <StudentHome />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher"
+            element={
+              <ProtectedRoute allow={["teacher"]}>
+                <TeacherHome />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent"
+            element={
+              <ProtectedRoute allow={["parent"]}>
+                <ParentHome />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Только для учителя */}
-        <Route
-          path="/teacher-console"
-          element={
-            <ProtectedRoute allow={["teacher"]}>
-              <TeacherConsole />
-            </ProtectedRoute>
-          }
-        />
+          {/* Остальные модули — только для авторизованных */}
+          <Route
+            path="/realtalk"
+            element={
+              <ProtectedRoute>
+                <RealTalkTime />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/historical-quiz"
+            element={
+              <ProtectedRoute>
+                <HistoricalQuiz />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quiz/:slug"
+            element={
+              <ProtectedRoute>
+                <LitQuiz />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/thinkhub"
+            element={
+              <ProtectedRoute>
+                <ThinkHub />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lifecharge"
+            element={
+              <ProtectedRoute>
+                <LifeCharge />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/atalink"
+            element={
+              <ProtectedRoute>
+                <AtaLink />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Любой неизвестный путь:
-            незарегистрированным — покажет «Тіркеу қажет» (AuthGate),
-            зарегистрированным — обычный 404. */}
-        <Route
-          path="*"
-          element={
-            <ProtectedRoute>
-              <NotFound />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+          {/* Только для учителя */}
+          <Route
+            path="/teacher-console"
+            element={
+              <ProtectedRoute allow={["teacher"]}>
+                <TeacherConsole />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Публичный 404 (без ProtectedRoute, чтобы не путать с редиректом на /login) */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </AuthProvider>
   );
 }
