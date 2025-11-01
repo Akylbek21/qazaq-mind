@@ -171,21 +171,18 @@ export default function App() {
           }
         />
 
-        {/* 404 */}
-        <Route path="*" element={<NotFound />} />
+        {/* Любой неизвестный путь:
+            незарегистрированным — покажет «Тіркеу қажет» (AuthGate),
+            зарегистрированным — обычный 404. */}
+        <Route
+          path="*"
+          element={
+            <ProtectedRoute>
+              <NotFound />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </AuthProvider>
   );
 }
-
-/*
-ВАЖНО:
-— Чтобы незарегистрированных не кидало на 404, а на регистрацию с баннером,
-  в ProtectedRoute сделай редирект на /register?reason=auth (я уже показывал код).
-— В Register.jsx покажи баннер, если reason=auth или есть state.from.
-— BrowserRouter должен быть в src/main.jsx, например:
-    import { BrowserRouter } from "react-router-dom";
-    createRoot(...).render(
-      <BrowserRouter><App /></BrowserRouter>
-    );
-*/
