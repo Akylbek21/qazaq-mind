@@ -7,99 +7,97 @@ import ChatModal from "../components/ChatModal";
 /* ===== Тұлғалар ===== */
 const personalities = {
   abai: {
-    name: "Абай Кунанбаев",
+    name: "Абай Құнанбайұлы",
     description:
-      "Сіз даналыққа, терең ойға және өзін-өзі тануға ұмтыласыз. Шешім қабылдамас бұрын мәнін түсінуге тырысасыз, білім мен парасатты жоғары бағалайсыз.",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/8/82/Abai_Kunanbaev_1896.jpg",
-    system_prompt_bio: "казахский поэт, философ...",
+      "Сен ойшыл, сабырлы, рухани терең тұлғасың. Әділет, білім мен еңбек құндылықтарын жоғары қоясың.",
+    image: encodeURI("/Абай Құнанбайұлы.jpg"),
+    system_prompt_bio:
+      "Ұлы ақын, ойшыл. Даналыққа, парасатқа, еңбек пен білімге үндейді.",
   },
-  satpayev: {
-    name: "Каныш Сатпаев",
+  bauyrzhan: {
+    name: "Бауыржан Момышұлы",
     description:
-      "Сіздің күшті қасиетіңіз – жүйелі ойлау, талдау және болашақты болжау. Әр істі ғылыми тұрғыдан зерттейсіз.",
-    image:
-      "https://e-history.kz/storage/tmp/resize/000/017/632/870_0_191993213.jpg",
-    system_prompt_bio: "советский и казахский учёный-геолог...",
-  },
-  momyshuly: {
-    name: "Бауыржан Момышулы",
-    description:
-      "Тәртіп, стратегия және батыл шешімдер – сіздің кредоңыз. Қиында жауапкершілікті алып, жоспармен әрекет етесіз.",
-    image:
-      "https://i.pinimg.com/originals/1a/0b/b7/1a0bb753c1264c7e6c986c52a537f09f.jpg",
-    system_prompt_bio: "легендарный казахский полководец...",
-  },
-  dospanova: {
-    name: "Хиуаз Доспанова",
-    description:
-      "Еш қиындық сізді тоқтатпайды. Мақсатқа табандылықпен жетесіз, жаңашылдыққа ұмтыласыз.",
-    image:
-      "https://e-history.kz/storage/tmp/resize/000/025/327/870_0_191993213.jpg",
-    system_prompt_bio: "единственная казахская лётчица...",
-  },
-  khans: {
-    name: "Керей мен Жәнібек",
-    description:
-      "Адамдарды біріктіресіз, дипломатияңыз мықты. Командада ортақ мақсатқа жұмылдырасыз.",
-    image: "https://orda.kz/wp-content/uploads/2022/10/kerej-i-zhanibek.jpg",
-    system_prompt_bio: "основатели и первые ханы...",
+      "Ержүрек, жауапкершілігі жоғары, әділеттілікті сүйесің. Қиында батыл шешім қабылдап, қорғайсың.",
+    image: encodeURI("/Бауыржан Момышұлы.jpg"),
+    system_prompt_bio:
+      "Әскери қолбасшы, батыр. Тәртіп, намыс, төзімділік құндылықтарын дәріптейді.",
   },
   tomyris: {
-    name: "Томирис",
+    name: "Томирис патшайым",
     description:
-      "Дағдарыста күшейесіз. Өз мүддеңізді қорғауда батылсыз, халқыңыз үшін тауды қопарасыз.",
-    image:
-      "https://i.pinimg.com/originals/9f/c7/2b/9fc72b8d0a0680196720e7a2b0c9f13d.jpg",
-    system_prompt_bio: "легендарная царица массагетов...",
+      "Әділет пен тәуелсіздікті бәрінен жоғары қоясың. Әлсізді қорғайсың, еркіндік пен теңдік — өмір мәні.",
+    image: encodeURI("/Томирис.jpg"),
+    system_prompt_bio:
+      "Массагет патшайымы. Еркіндік пен әділдік жолындағы күрестің символы.",
+  },
+  ahmet: {
+    name: "Ахмет Байтұрсынұлы",
+    description:
+      "Ағартушылық пен білім — сенің жолың. Сөздің күші мен тілдің қасиетін қорғайсың.",
+    image: encodeURI("/Ахмет Байтұрсынұлы.jpg"),
+    system_prompt_bio:
+      "Ұлт ұстазы, тілші, ағартушы. Қазақ тіл білімінің негізін қалаушылардың бірі.",
+  },
+  alikhan: {
+    name: "Әлихан Бөкейхан",
+    description:
+      "Халықтың қамын ойлайтын көшбасшысың. Бірлікке, әділ қоғамға, демократияға ұмтыласың.",
+    image: encodeURI("/Әлихан Бөкейхан.jpg"),
+    system_prompt_bio:
+      "Алаш қозғалысының жетекшісі, саяси қайраткер. Стратегиялық ойлау мен жауапкершілікті алдыңғы орынға қояды.",
   },
 };
 
 /* ===== Сұрақтар ===== */
 const questions = [
   {
-    text: "Сіз қиын мәселені қалай шешкенді жөн көресіз?",
+    text: "1. Қиын жағдай туындағанда сен не істейсің?",
     options: [
-      { text: "Барлық деректерді зерттеп, талдау жасаймын.", weights: { satpayev: 3, abai: 1 } },
-      { text: "Тәжірибелі адамдардан ақыл сұрап, ой елегінен өткіземін.", weights: { abai: 3, khans: 1 } },
-      { text: "Уақыт жоғалтпай, тез әрі нақты шешім қабылдаймын.", weights: { momyshuly: 3, tomyris: 1 } },
-      { text: "Команда жинап, міндеттерді бөліп, бірге шешемін.", weights: { khans: 3, satpayev: 1 } },
+      { text: "A) Сабыр сақтап, терең ойланамын (Абай Құнанбайұлы)", weights: { abai: 3 } },
+      { text: "B) Тактиканы өзгертіп, нақты шешім қабылдаймын (Бауыржан Момышұлы)", weights: { bauyrzhan: 3 } },
+      { text: "C) Елдің мүддесін қорғаймын, күреске шығамын (Томирис патшайым)", weights: { tomyris: 3 } },
+      { text: "D) Адамдарды біліммен, сөзбен оятамын (Ахмет Байтұрсынұлы)", weights: { ahmet: 3 } },
+      { text: "E) Ұлтты біріктіру жолында идея іздеймін (Әлихан Бөкейхан)", weights: { alikhan: 3 } },
     ],
   },
   {
-    text: "Сіз үшін өмірдегі ең маңызды құндылық не?",
+    text: "2. Саған ең маңызды құндылық қайсысы?",
     options: [
-      { text: "Білім мен өзін-өзі үнемі жетілдіру.", weights: { abai: 3, satpayev: 2 } },
-      { text: "Отанға және өз ісіне деген адалдық.", weights: { momyshuly: 3, dospanova: 1 } },
-      { text: "Ел мен халықтың бірлігі мен игілігі.", weights: { khans: 3, tomyris: 1 } },
-      { text: "Алға қойған мақсатқа жетудегі табандылық.", weights: { dospanova: 3, satpayev: 1 } },
+      { text: "A) Ақыл мен парасат (Абай)", weights: { abai: 3 } },
+      { text: "B) Ерлік пен намыс (Бауыржан)", weights: { bauyrzhan: 3 } },
+      { text: "C) Тәуелсіздік пен азаттық (Томирис)", weights: { tomyris: 3 } },
+      { text: "D) Білім мен ағарту (Ахмет)", weights: { ahmet: 3 } },
+      { text: "E) Бірлік пен ел басқару (Әлихан)", weights: { alikhan: 3 } },
     ],
   },
   {
-    text: "Күтпеген қиындыққа тап болғанда, бірінші реакцияңыз?",
+    text: "3. Досың қиындыққа тап болса, сен...",
     options: [
-      { text: "Салқынқандылық сақтап, талдаймын.", weights: { satpayev: 2, momyshuly: 2, abai: 1 } },
-      { text: "Ең тиімді қорғаныс/шабуыл жоспарын ойластырамын.", weights: { tomyris: 3, momyshuly: 2 } },
-      { text: "Бұл жағдайдан қандай сабақ алуға болатынын ойлаймын.", weights: { abai: 3, dospanova: 1 } },
-      { text: "Серіктестеріммен бірігіп, талқылаймын.", weights: { khans: 3, satpayev: 1 } },
+      { text: "A) Оны сабырға шақырып, ақыл беремін (Абай)", weights: { abai: 3 } },
+      { text: "B) Бірге күресемін, қорғаймын (Бауыржан)", weights: { bauyrzhan: 3 } },
+      { text: "C) Оның намысын қорғау үшін алға шығамын (Томирис)", weights: { tomyris: 3 } },
+      { text: "D) Түсіндіріп, бағыт көрсетемін (Ахмет)", weights: { ahmet: 3 } },
+      { text: "E) Қиындықты жүйелі түрде шешуге көмектесемін (Әлихан)", weights: { alikhan: 3 } },
     ],
   },
   {
-    text: "Жаңа жобаны бастағанда не маңызды?",
+    text: "4. Егер сенде үлкен мүмкіндік болса, сен не істер едің?",
     options: [
-      { text: "Нақты, қадамдық жоспар.", weights: { momyshuly: 3, satpayev: 2 } },
-      { text: "Қоғамға пайдасы.", weights: { satpayev: 3, abai: 1 } },
-      { text: "Жаңашыл болуы.", weights: { dospanova: 3, khans: 1 } },
-      { text: "Команданың рухы.", weights: { khans: 3, tomyris: 1 } },
+      { text: "A) Халықты рухани байытуға атсалысамын (Абай)", weights: { abai: 3 } },
+      { text: "B) Елдің қорғанысын күшейтер едім (Бауыржан)", weights: { bauyrzhan: 3 } },
+      { text: "C) Әйелдің, ананың мәртебесін көтерер едім (Томирис)", weights: { tomyris: 3 } },
+      { text: "D) Қазақ тілін дамытуға, білім таратуға жұмыс жасар едім (Ахмет)", weights: { ahmet: 3 } },
+      { text: "E) Әділ қоғам орнатуға күш саламын (Әлихан)", weights: { alikhan: 3 } },
     ],
   },
   {
-    text: "Сізді не шабыттандырады?",
+    text: "5. Қандай сипат өзіңе тән деп ойлайсың?",
     options: [
-      { text: "Әділетсіздікпен күресу.", weights: { tomyris: 3, momyshuly: 1 } },
-      { text: "Жаңа білімді игеру.", weights: { satpayev: 3, abai: 2 } },
-      { text: "Басқаларға үлгі болу.", weights: { momyshuly: 2, dospanova: 2, khans: 1 } },
-      { text: "Өмірдің мәні туралы ойлану.", weights: { abai: 3 } },
+      { text: "A) Терең ойлы, парасатты (Абай)", weights: { abai: 3 } },
+      { text: "B) Батыл, табанды (Бауыржан)", weights: { bauyrzhan: 3 } },
+      { text: "C) Ер мінезді, намысты (Томирис)", weights: { tomyris: 3 } },
+      { text: "D) Сөзге шешен, ұстаздық қабілеті бар (Ахмет)", weights: { ahmet: 3 } },
+      { text: "E) Көшбасшы, ұйымдастырушы (Әлихан)", weights: { alikhan: 3 } },
     ],
   },
 ];
@@ -178,7 +176,7 @@ export default function HistoricalQuiz() {
                 Тестті бастау
               </button>
               <div className="mt-6">
-                <button onClick={() => navigate(-1)} className="btn btn-tertiary">
+                <button onClick={() => navigate(-1)} className="btn btn-terтіary">
                   ⟵ Басты бетке
                 </button>
               </div>
@@ -214,7 +212,7 @@ export default function HistoricalQuiz() {
                     onClick={() => handleAnswer(opt.weights)}
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.98 }}
-                    className="group text-left rounded-xl border-2 border-slate-200/70 bg-white p-4 hover:border-teal-500/70 hover:bg-teal-50/60 transition-all"
+                    className="group text-left rounded-xl border-2 border-slate-200/70 bg-white p-4 hover:border-teal-500/70 hover:bg-teал-50/60 transition-all"
                   >
                     <div className="flex items-start gap-3">
                       <div className="mt-0.5 h-2.5 w-2.5 rounded-full bg-teal-500/70 group-hover:bg-teal-600" />
@@ -232,21 +230,30 @@ export default function HistoricalQuiz() {
                 const p = personalities[resultKey];
                 return (
                   <div className="text-center">
-                    <h3 className="text-sm md:text-base tracking-wide uppercase text-teal-600 mb-2">Сіздің тұлғаңыз</h3>
+                    <h3 className="text-sm md:text-base tracking-wide uppercase text-teal-600 mb-2">
+                      Сіздің тұлғаңыз
+                    </h3>
                     <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">
-                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#1F7A8C] to-[#0ea5a5]">{p.name}</span>
+                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#1F7A8C] to-[#0ea5a5]">
+                        {p.name}
+                      </span>
                     </h2>
                     <img
                       src={p.image}
                       alt={p.name}
                       className="w-40 h-40 md:w-48 md:h-48 rounded-full mx-auto mb-6 shadow-xl border-4 border-white object-cover"
                       onError={(e) => {
-                        e.currentTarget.src = "https://placehold.co/400x400/cccccc/ffffff?text=Image+Not+Found";
+                        e.currentTarget.src =
+                          "https://placehold.co/400x400/cccccc/ffffff?text=Image+Not+Found";
                       }}
                     />
-                    <p className="text-base md:text-lg text-slate-700 max-w-2xl mx-auto mb-8">{p.description}</p>
+                    <p className="text-base md:text-lg text-slate-700 max-w-2xl mx-auto mb-8">
+                      {p.description}
+                    </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                      <button onClick={handleRestart} className="btn btn-tertiary">Тестті қайта өту</button>
+                      <button onClick={handleRestart} className="btn btn-tertiary">
+                        Тестті қайта өту
+                      </button>
                       <button onClick={() => setChatPersonality(p)} className="btn btn-primary">
                         ✨ {p.name.split(" ")[0]}мен сөйлесу
                       </button>
