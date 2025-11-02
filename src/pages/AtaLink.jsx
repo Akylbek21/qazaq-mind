@@ -8,7 +8,7 @@ import {
   submitAtaAnswer,
   fetchAtaArticleSummary,
   _utils as ATA,
-} from "@/api/atalink";
+} from "../api/atalink";
 
 /* ===================== PERSIST KEYS ===================== */
 const QUIZ_KEY = "atalink_quiz_stats_v1";
@@ -20,9 +20,11 @@ function load(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key) || "null") ?? fallback; }
   catch { return fallback; }
 }
+
 function save(key, val) {
   localStorage.setItem(key, JSON.stringify(val));
 }
+
 /* YouTube → embed */
 function toYouTubeEmbed(url) {
   try {
@@ -73,6 +75,12 @@ export default function AtaLink() {
   /* -------- tabs -------- */
   const [tab, setTab] = React.useState(() => load(TAB_KEY, "tips"));
   React.useEffect(() => save(TAB_KEY, tab), [tab]);
+
+  const pageVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 }
+  };
 
   /* -------- server articles -------- */
   const [articles, setArticles] = React.useState([]);
@@ -209,11 +217,24 @@ export default function AtaLink() {
   const embeds = VIDEO_URLS.map(toYouTubeEmbed).filter(Boolean);
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-10">
-      <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-        className="text-3xl md:text-4xl font-extrabold text-slate-900">
-        AtaLink — <span className="text-[#f59e0b]">Ата-анамен байланыс (кеңес/тест/видео/заң)</span>
-      </motion.h1>
+    <motion.div 
+      className="min-h-screen bg-slate-50"
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={pageVariants}
+    >
+      <div className="container mx-auto max-w-6xl px-4 py-10">
+        <motion.div className="text-center mb-8">
+          <h1 className="text-4xl font-extrabold">
+            <span className="bg-gradient-to-r from-[#f59e0b] to-[#f97316] bg-clip-text text-transparent">
+              AtaLink
+            </span>
+          </h1>
+          <p className="mt-4 text-slate-600">
+            Ата-анамен байланыс платформасы: кеңестер, тесттер, видео материалдар және заң ақпараты
+          </p>
+        </motion.div>
       <p className="mt-2 text-slate-600">
         Мақалалар мен тесттер енді серверден жүктеледі. Қажет болса — локалдық режимге автоматты түрде ауысады.
       </p>
@@ -468,6 +489,7 @@ export default function AtaLink() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </motion.div>
   );
 }

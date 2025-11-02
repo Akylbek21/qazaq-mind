@@ -1,0 +1,2 @@
+import{i as s}from"./index-CVxrc5Ku.js";function e(a){let t=String(a??"");if(/^(https?:)?\/\//i.test(t))return t;t.startsWith("/")||(t=`/${t}`);const i=String(s.defaults.baseURL||"");return/\/api\/?$/i.test(i)&&(t=t.replace(/^\/api(\/|$)/i,"/")),t=t.replace(/([^:])\/{2,}/g,"$1/"),t}async function o(a,t={}){const{data:i}=await s.get(e(a),t);return i}async function p(a,t,i={}){const{data:n}=await s.post(e(a),t,i);return n}export{o as g,p};
+//# sourceMappingURL=client-DYrIeA2N.js.map

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
@@ -6,27 +7,41 @@ import {
   submitIQAnswer,
   fetchIQTestSummary,
 } from "../api/quiz";
+import { Link, useInRouterContext } from "react-router-dom";
 
 /* ---------- Безопасная ссылка ---------- */
 function SmartLink({ to, className = "", children, ...rest }) {
-  let InRouter = null;
-  try { InRouter = require("react-router-dom").useInRouterContext; } catch (_) {}
-  const inRouter = InRouter?.() ?? false;
-  if (!inRouter) return <a href={to} className={className} {...rest}>{children}</a>;
-  const { Link } = require("react-router-dom");
-  return <Link to={to} className={className} {...rest}>{children}</Link>;
+  const inRouter = useInRouterContext ? useInRouterContext() : false;
+  return inRouter ? (
+    <Link to={to} className={className} {...rest}>{children}</Link>
+  ) : (
+    <a href={to} className={className} {...rest}>{children}</a>
+  );
 }
 
 const Pill = ({ children, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`px-4 py-2 rounded-xl text-sm font-semibold border transition ${
-      active ? "bg-slate-900 text-white border-slate-900"
-             : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 transform hover:-translate-y-0.5 ${
+      active ? "bg-gradient-to-r from-[#1F7A8C] to-[#0ea5a5] text-white border-transparent shadow-lg"
+             : "bg-white text-slate-700 border border-slate-300 hover:border-slate-400 hover:bg-slate-50 hover:shadow"
     }`}
   >
     {children}
   </button>
+);
+
+const Card = ({ title, value, suffix = "", loading = false }) => (
+  <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-all duration-200">
+    <div className="text-sm text-slate-600">{title}</div>
+    <div className="mt-1 text-2xl font-bold text-slate-900">
+      {loading ? (
+        <div className="animate-pulse h-8 w-16 bg-slate-200 rounded"></div>
+      ) : (
+        <>{value}{suffix}</>
+      )}
+    </div>
+  </div>
 );
 
 const LS_KEY = "intellect_up_stats_pure_api";
@@ -40,6 +55,9 @@ function normalizeIQFromServer(q) {
     id: q.id,
     q: q.prompt ?? "",
     options, // порядок строго A,B,C,D
+    imageUrl: q.imageUrl || q.image || null,
+    domain: q.domain || null,
+    correctLetter: q.correct || null,
   };
 }
 const letterByIndex = (i) => ["A","B","C","D"][i] ?? null;
@@ -51,19 +69,24 @@ const letterFromChoice = (normalizedQuestion, chosenText) => {
 
 export default function IntellectUp() {
   /* ======================= IQ ======================= */
-  const [tests, setTests] = useState([]);              // список доступных тестов
+  const [tests, setTests] = useState([]);              
   const [activeTestId, setActiveTestId] = useState(null);
-
-  const [iqBank, setIQBank] = useState([]);            // нормализованные вопросы текущего теста
+  const [iqBank, setIQBank] = useState([]);            
   const [iqTimeLimit, setIqTimeLimit] = useState(60);
   const [iqLoading, setIqLoading] = useState(false);
   const [iqError, setIqError] = useState("");
 
   const [started, setStarted] = useState(false);
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState({});          // { questionIndex: optionText }
+  const [answers, setAnswers] = useState({});          
   const [finished, setFinished] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
+
+  const pageVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 }
+  };
 
   const [stats, setStats] = useState(() => loadStats());
   const [questions, setQuestions] = useState([]);
@@ -281,6 +304,16 @@ export default function IntellectUp() {
           <motion.div key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             className="mt-6 rounded-2xl border border-slate-200 bg-white/80 backdrop-blur p-5 shadow">
             <h2 className="text-xl font-semibold text-slate-900">{questions[step - 1].q}</h2>
+
+            {questions[step - 1].imageUrl ? (
+              <div className="mt-4 flex justify-center">
+                <img
+                  src={questions[step - 1].imageUrl}
+                  alt={questions[step - 1].q?.slice(0, 120) ?? "question image"}
+                  className="max-h-48 w-auto rounded-lg object-contain border border-slate-200"
+                />
+              </div>
+            ) : null}
 
             <div className="mt-4 grid gap-3">
               {questions[step - 1].options.map((opt, i) => {

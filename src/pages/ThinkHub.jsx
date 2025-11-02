@@ -213,16 +213,20 @@ export default function ThinkHub() {
                 className="rounded-2xl border border-slate-200 bg-white p-5 shadow"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-amber-100 to-orange-100 flex items-center justify-center text-xl">
-                    📘
+                    {b.imageUrl ? (
+                      <img src={b.imageUrl} alt={b.title} className="w-12 h-12 rounded-xl object-cover border" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-amber-100 to-orange-100 flex items-center justify-center text-xl">
+                        📘
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <h3 className="text-lg font-bold text-slate-900">
+                        {b.title}
+                      </h3>
+                      <p className="text-xs text-slate-500">{b.author}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="text-lg font-bold text-slate-900">
-                      {b.title}
-                    </h3>
-                    <p className="text-xs text-slate-500">{b.author}</p>
-                  </div>
-                </div>
                 <div className="mt-4">
                   <button
                     onClick={() => startBook(b)}
@@ -246,9 +250,13 @@ export default function ThinkHub() {
       {phase === "quiz" && (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white/80 p-5 shadow">
           <div className="flex items-start gap-3">
-            <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center text-xl">
-              📖
-            </div>
+            {book?.imageUrl ? (
+              <img src={book.imageUrl} alt={book?.title} className="w-12 h-12 rounded-xl object-cover" />
+            ) : (
+              <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center text-xl">
+                📖
+              </div>
+            )}
             <div className="min-w-0">
               <h3 className="text-xl font-bold text-slate-900">{book?.title}</h3>
               <p className="text-xs text-slate-500">{book?.author}</p>
@@ -282,6 +290,11 @@ export default function ThinkHub() {
                 <h4 className="text-lg font-bold text-slate-900">
                   {current.prompt}
                 </h4>
+                {current.imageUrl ? (
+                  <div className="mt-3 flex justify-center">
+                    <img src={current.imageUrl} alt={current.prompt?.slice(0,120) || 'question image'} className="max-h-48 w-auto rounded-lg object-contain border border-slate-200" />
+                  </div>
+                ) : null}
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
                   {current.options.map((opt, i) => {
                     const letter = fromIndex(i);

@@ -9,6 +9,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 
+import './styles/components.css';
+
 // --- Публичные секции лендинга ---
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
@@ -129,7 +131,7 @@ export default function App() {
           <Route
             path="/realtalk"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allow={["STUDENT"]}>
                 <RealTalkTime />
               </ProtectedRoute>
             }
@@ -153,7 +155,7 @@ export default function App() {
           <Route
             path="/thinkhub"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allow={["STUDENT"]}>
                 <ThinkHub />
               </ProtectedRoute>
             }
@@ -161,7 +163,7 @@ export default function App() {
           <Route
             path="/lifecharge"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allow={["STUDENT"]}>
                 <LifeCharge />
               </ProtectedRoute>
             }
@@ -169,7 +171,7 @@ export default function App() {
           <Route
             path="/atalink"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allow={["PARENT"]}>
                 <AtaLink />
               </ProtectedRoute>
             }

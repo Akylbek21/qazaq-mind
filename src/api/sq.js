@@ -44,6 +44,8 @@ export async function fetchSQBookQuestions(bookId, opts = {}) {
     book: q.book,
     prompt: q.prompt,
     options: [q.optionA, q.optionB, q.optionC, q.optionD].filter((v) => v != null),
+    imageUrl: q.imageUrl || q.image || null,
+    domain: q.domain || null,
     correctLetter: q.correct || null,
   }));
 }

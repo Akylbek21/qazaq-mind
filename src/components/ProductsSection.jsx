@@ -2,6 +2,7 @@
 import React from "react";
 import { motion, useInView } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import {
   BrainIcon,
   HeartIcon,
@@ -19,6 +20,20 @@ const ProductsSection = ({ onModuleClick }) => {
   sq: "/thinkhub",
    pq: "/lifecharge",
  };
+
+  const { role } = useAuth();
+
+  // Разрешённые модули по ролям
+  const allowedByRole = (r) => {
+    const R = String(r || "").toUpperCase();
+    if (R === "TEACHER") return (t) => true;
+    if (R === "PARENT") return (t) => t === "atalink";
+    if (R === "STUDENT") return (t) => ["sq", "eq", "iq", "pq"].includes(t);
+    // по умолчанию — показываем все как доступные
+    return (t) => true;
+  };
+
+  const isAllowed = allowedByRole(role);
 
   const products = [
     {
@@ -129,21 +144,22 @@ const ProductsSection = ({ onModuleClick }) => {
         >
           {products.map((p) => {
             const route = MODULE_ROUTES[p.type];
+            const allowed = Boolean(p.interactive && isAllowed(p.type));
             return (
               <motion.div
                 key={p.type}
                 variants={itemVariants}
-                role={p.interactive ? "button" : "group"}
-                tabIndex={p.interactive ? 0 : -1}
+                role={allowed ? "button" : "group"}
+                tabIndex={allowed ? 0 : -1}
                 aria-label={p.title}
-                aria-disabled={!p.interactive}
-                onClick={() => handleCardClick(p)}
-                onKeyDown={(e) => e.key === "Enter" && handleCardClick(p)}
+                aria-disabled={!allowed}
+                onClick={() => allowed && handleCardClick(p)}
+                onKeyDown={(e) => e.key === "Enter" && allowed && handleCardClick(p)}
                 className={`group relative text-left rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-xl p-6 md:p-7 
                             shadow-[0_10px_30px_rgba(16,37,66,0.06)] transition-all duration-300 ${
-                              p.interactive
-                                ? "hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(16,37,66,0.12)] focus:outline-none focus:ring-2 focus:ring-teал-500/60 cursor-pointer"
-                                : "cursor-default"
+                              allowed
+                                ? "hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(16,37,66,0.12)] focus:outline-none focus:ring-2 focus:ring-teal-500/60 cursor-pointer"
+                                : "cursor-not-allowed opacity-50"
                             }`}
               >
                 <span className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition bg-[conic-gradient(from_180deg_at_50%_50%,#1F7A8C33_0%,#FFD58033_50%,#1F7A8C33_100%)]" />
@@ -157,24 +173,30 @@ const ProductsSection = ({ onModuleClick }) => {
 
                 {p.interactive && (
                   <div className="relative mt-4 inline-flex items-center text-sm font-semibold text-teal-700">
-                    {route ? (
-                      <Link to={route} onClick={(e) => e.stopPropagation()} className="inline-flex items-center">
-                        {p.cta || "Тапсырманы орындау"}
-                        <svg className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
+                    {allowed ? (
+                      route ? (
+                        <Link to={route} onClick={(e) => e.stopPropagation()} className="inline-flex items-center">
+                          {p.cta || "Тапсырманы орындау"}
+                          <svg className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); onModuleClick?.(p); }}
+                          className="inline-flex items-center"
+                        >
+                          {p.cta || "Тапсырманы орындау"}
+                          <svg className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      )
                     ) : (
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); onModuleClick?.(p); }}
-                        className="inline-flex items-center"
-                      >
+                      <span className="inline-flex items-center text-slate-400">
                         {p.cta || "Тапсырманы орындау"}
-                        <svg className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
+                      </span>
                     )}
                   </div>
                 )}

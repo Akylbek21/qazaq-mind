@@ -11,7 +11,18 @@ const LS = {
 };
 
 // Роли храним в UPPERCASE, чтобы сравнение всегда было стабильным.
+const ROLE_NAMES = {
+  TEACHER: "Мұғалім",
+  STUDENT: "Оқушы",
+  PARENT: "Ата-ана",
+};
+
 const normalizeRole = (r) => (r || "").toString().trim().toUpperCase();
+
+const getLocalizedRoleName = (role) => {
+  const normalizedRole = normalizeRole(role);
+  return ROLE_NAMES[normalizedRole] || normalizedRole || "—";
+};
 
 function extractClaims(token, fallback = {}) {
   try {
@@ -39,6 +50,28 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [role, setRole] = useState(null);
   const [username, setUsername] = useState(null);
+  const [user, setUser] = useState(null); // полный профиль (username, role, score и т.д.)
+
+  // Загрузить профиль пользователя с API (если есть токен)
+  const fetchProfile = async () => {
+    try {
+      const { data } = await http.get("/user/profile");
+      if (data) {
+        const u = data.username || data.user || data.name || null;
+        const r = data.role ? String(data.role).toUpperCase() : null;
+        setUser(data);
+        if (u) setUsername(u);
+        if (r) setRole(r);
+
+        if (u) localStorage.setItem(LS.username, u);
+        if (r) localStorage.setItem(LS.role, r);
+      }
+      return data;
+    } catch (err) {
+      // игнорируем ошибки здесь — авторизация всё равно работает
+      return null;
+    }
+  };
 
   // Инициализация из localStorage
   useEffect(() => {
@@ -48,6 +81,8 @@ export function AuthProvider({ children }) {
     if (t) {
       setToken(t);
       setAuthToken(t);
+      // Попробуем подгрузить профиль
+      fetchProfile().catch(() => {});
     }
     if (r) setRole(r);
     if (u) setUsername(u);
@@ -63,12 +98,16 @@ export function AuthProvider({ children }) {
     setToken(t);
     setRole(r);
     setUsername(u);
+    // оптимистично установим профиль (дальше обновим с сервера)
+    setUser({ username: u || null, role: r || null, score: null });
 
     localStorage.setItem(LS.token, t);
     if (r) localStorage.setItem(LS.role, r);
     if (u) localStorage.setItem(LS.username, u);
 
     setAuthToken(t);
+    // Попробуем загрузить актуальный профиль сразу
+    fetchProfile().catch(() => {});
   };
 
   // Регистрация → POST /api/auth/register
@@ -103,6 +142,7 @@ export function AuthProvider({ children }) {
     setToken(null);
     setRole(null);
     setUsername(null);
+    setUser(null);
     setAuthToken(null);
   };
 
@@ -111,8 +151,10 @@ export function AuthProvider({ children }) {
       token,
       role,        // всегда UPPERCASE
       username,
+      user,
       isAuthenticated: !!token,
       hasRole: (r) => normalizeRole(r) === role,
+      getLocalizedRoleName,
       register,
       login,
       logout,
