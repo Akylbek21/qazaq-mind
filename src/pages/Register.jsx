@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 
 const EyeIcon = ({ className = "w-5 h-5" }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -22,13 +22,13 @@ const EyeOffIcon = ({ className = "w-5 h-5" }) => (
 
 export default function Register() {
   const nav = useNavigate();
-  const { register } = useAuth(); // из AuthContext: http.post('/api/auth/register', { username, password, role })
+  const { register } = useAuth();
 
   const [form, setForm] = useState({
     username: "",
     password: "",
     confirm: "",
-    role: "STUDENT",
+    role: "STUDENT", // всегда UPPERCASE
   });
 
   const [showPass, setShowPass] = useState(false);
@@ -36,24 +36,38 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
+  const usernameTrimmed = form.username.trim();
+  const canSubmit =
+    !!usernameTrimmed &&
+    form.password.length >= 6 &&
+    form.password === form.confirm &&
+    !loading;
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setErr("");
 
-    if (!form.username.trim()) return setErr("Укажите логин.");
+    if (!usernameTrimmed) return setErr("Укажите логин.");
     if (form.password.length < 6) return setErr("Пароль должен быть не короче 6 символов.");
     if (form.password !== form.confirm) return setErr("Пароли не совпадают.");
 
     setLoading(true);
     try {
-      await register({
-        username: form.username.trim(),
+      const data = await register({
+        username: usernameTrimmed,
         password: form.password,
-        role: form.role, // STUDENT | TEACHER | PARENT (UPPERCASE)
+        role: form.role, // STUDENT | TEACHER | PARENT
       });
-      nav("/login?registered=1", { replace: true });
+
+      // Если бэк сразу вернул токен (автовход), уводим на главную.
+      // Иначе — на форму входа с флажком registered=1.
+      if (data?.token) {
+        nav("/", { replace: true });
+      } else {
+        nav("/login?registered=1", { replace: true });
+      }
     } catch (e) {
-      setErr(e?.message || "Не удалось зарегистрировать пользователя.");
+      setErr(e?.response?.data?.message || e?.message || "Не удалось зарегистрировать пользователя.");
     } finally {
       setLoading(false);
     }
@@ -71,6 +85,7 @@ export default function Register() {
             ? "bg-teal-600 text-white shadow"
             : "bg-white/70 text-slate-700 hover:bg-slate-100 border border-slate-200",
         ].join(" ")}
+        aria-pressed={active}
       >
         {label}
       </button>
@@ -79,7 +94,6 @@ export default function Register() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50">
-      {/* Декор */}
       <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/30 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-24 right-10 h-72 w-72 rounded-full bg-teal-300/30 blur-3xl" />
 
@@ -91,7 +105,6 @@ export default function Register() {
           className="w-full max-w-md"
         >
           <div className="pointer-events-auto rounded-3xl border border-white/60 bg-white/70 p-8 shadow-2xl backdrop-blur-xl">
-            {/* Заголовок */}
             <div className="mb-6 text-center">
               <h1 className="bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
                 Qazaq Mind
@@ -99,32 +112,27 @@ export default function Register() {
               <p className="mt-1 text-sm text-slate-600">Тіркеу / Регистрация</p>
             </div>
 
-            {/* Ошибки */}
             {err && (
               <div className="mb-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {err}
               </div>
             )}
 
-            {/* Форма */}
             <form onSubmit={onSubmit} className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Логин
-                </label>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Логин</label>
                 <input
                   className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-slate-900 outline-none transition focus:border-teal-400 focus:bg-white focus:shadow-[0_0_0_4px_rgba(13,148,136,0.08)]"
                   placeholder="username"
                   value={form.username}
                   onChange={(e) => setForm({ ...form, username: e.target.value })}
                   autoComplete="username"
+                  required
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Пароль
-                </label>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Пароль</label>
                 <div className="relative">
                   <input
                     className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 pr-12 text-slate-900 outline-none transition focus:border-teal-400 focus:bg-white focus:shadow-[0_0_0_4px_rgba(13,148,136,0.08)]"
@@ -133,6 +141,8 @@ export default function Register() {
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     autoComplete="new-password"
+                    required
+                    minLength={6}
                   />
                   <button
                     type="button"
@@ -147,9 +157,7 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Подтверждение пароля
-                </label>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Подтверждение пароля</label>
                 <div className="relative">
                   <input
                     className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 pr-12 text-slate-900 outline-none transition focus:border-teal-400 focus:bg-white focus:shadow-[0_0_0_4px_rgba(13,148,136,0.08)]"
@@ -158,6 +166,8 @@ export default function Register() {
                     value={form.confirm}
                     onChange={(e) => setForm({ ...form, confirm: e.target.value })}
                     autoComplete="new-password"
+                    required
+                    minLength={6}
                   />
                   <button
                     type="button"
@@ -170,26 +180,23 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Роль */}
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
-                  Роль
-                </label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Роль</label>
                 <div className="flex gap-2">
                   <RoleButton value="STUDENT" label="Студент" />
                   <RoleButton value="TEACHER" label="Мұғалім / Teacher" />
-                  <RoleButton value="PARENT" label="Ата-ана / Parent" />
+                  <RoleButton value="PARENT"  label="Ата-ана / Parent" />
                 </div>
               </div>
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={!canSubmit}
                 className="group relative mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-cyan-600 px-5 py-3 font-semibold text-white shadow-lg transition hover:from-teal-500 hover:to-cyan-500 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {loading ? (
                   <>
-                    <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
                       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25 fill-transparent" />
                       <path d="M4 12a8 8 0 0 1 8-8" className="opacity-75" fill="currentColor" />
                     </svg>
@@ -201,9 +208,8 @@ export default function Register() {
               </button>
             </form>
 
-            {/* Низ карточки */}
             <nav className="mt-5 flex items-center justify-between text-sm text-slate-600 pointer-events-auto">
-              <Link to="/login" className="rounded-lg px-2 py-1 text-teал-700 hover:bg-teal-50 transition">
+              <Link to="/login" className="rounded-lg px-2 py-1 text-teal-700 hover:bg-teal-50 transition">
                 Уже есть аккаунт? Войти
               </Link>
               <span className="text-slate-400">•</span>
