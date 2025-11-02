@@ -47,9 +47,9 @@ export default function Register() {
     e.preventDefault();
     setErr("");
 
-    if (!usernameTrimmed) return setErr("Укажите логин.");
-    if (form.password.length < 6) return setErr("Пароль должен быть не короче 6 символов.");
-    if (form.password !== form.confirm) return setErr("Пароли не совпадают.");
+    if (!usernameTrimmed) return setErr("Логинді жазыңыз.");
+    if (form.password.length < 6) return setErr("Құпиясөз 6 символдан кем болмауы керек.");
+    if (form.password !== form.confirm) return setErr("Құпиясөздер сәйкес емес.");
 
     setLoading(true);
     try {
@@ -67,7 +67,7 @@ export default function Register() {
         nav("/login?registered=1", { replace: true });
       }
     } catch (e) {
-      setErr(e?.response?.data?.message || e?.message || "Не удалось зарегистрировать пользователя.");
+      setErr(e?.response?.data?.message || e?.message || "Қолданушыны тіркеу кезінде қате пайда болды.");
     } finally {
       setLoading(false);
     }
@@ -109,7 +109,7 @@ export default function Register() {
               <h1 className="bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
                 Qazaq Mind
               </h1>
-              <p className="mt-1 text-sm text-slate-600">Тіркеу / Регистрация</p>
+              <p className="mt-1 text-sm text-slate-600">Тіркеу</p>
             </div>
 
             {err && (
@@ -132,7 +132,7 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Пароль</label>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Құпиясөз</label>
                 <div className="relative">
                   <input
                     className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 pr-12 text-slate-900 outline-none transition focus:border-teal-400 focus:bg-white focus:shadow-[0_0_0_4px_rgba(13,148,136,0.08)]"
@@ -148,20 +148,20 @@ export default function Register() {
                     type="button"
                     onClick={() => setShowPass((s) => !s)}
                     className="absolute inset-y-0 right-3 my-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
-                    aria-label={showPass ? "Скрыть пароль" : "Показать пароль"}
+                    aria-label={showPass ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
                   >
                     {showPass ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
                 </div>
-                <p className="mt-1 text-xs text-slate-500">Минимум 6 символов.</p>
+                <p className="mt-1 text-xs text-slate-500">Минимум 6 cимвол.</p>
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Подтверждение пароля</label>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Құпиясөзді растау</label>
                 <div className="relative">
                   <input
                     className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 pr-12 text-slate-900 outline-none transition focus:border-teal-400 focus:bg-white focus:shadow-[0_0_0_4px_rgba(13,148,136,0.08)]"
-                    placeholder="repeat password"
+                    placeholder="password"
                     type={showConfirm ? "text" : "password"}
                     value={form.confirm}
                     onChange={(e) => setForm({ ...form, confirm: e.target.value })}
@@ -173,7 +173,7 @@ export default function Register() {
                     type="button"
                     onClick={() => setShowConfirm((s) => !s)}
                     className="absolute inset-y-0 right-3 my-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
-                    aria-label={showConfirm ? "Скрыть пароль" : "Показать пароль"}
+                    aria-label={showConfirm ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
                   >
                     {showConfirm ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
@@ -181,11 +181,10 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Роль</label>
                 <div className="flex gap-2">
-                  <RoleButton value="STUDENT" label="Студент" />
-                  <RoleButton value="TEACHER" label="Мұғалім / Teacher" />
-                  <RoleButton value="PARENT"  label="Ата-ана / Parent" />
+                  <RoleButton value="STUDENT" label="Оқушы" />
+                  <RoleButton value="TEACHER" label="Мұғалім" />
+                  <RoleButton value="PARENT"  label="Ата-ана" />
                 </div>
               </div>
 
@@ -203,22 +202,21 @@ export default function Register() {
                     Тіркеу...
                   </>
                 ) : (
-                  "Зарегистрироваться"
+                  "Тіркелу"
                 )}
               </button>
             </form>
 
             <nav className="mt-5 flex items-center justify-between text-sm text-slate-600 pointer-events-auto">
               <Link to="/login" className="rounded-lg px-2 py-1 text-teal-700 hover:bg-teal-50 transition">
-                Уже есть аккаунт? Войти
+                Сізде аккаунт бар ма? Кіру
               </Link>
               <span className="text-slate-400">•</span>
-              <span className="rounded-lg px-2 py-1 text-slate-400 cursor-default">Правила сервиса</span>
             </nav>
           </div>
 
           <div className="mt-6 text-center text-xs text-slate-500">
-            © {new Date().getFullYear()} Qazaq Mind · Human-centric learning
+            © {new Date().getFullYear()} Qazaq Mind
           </div>
         </motion.div>
       </div>

@@ -46,15 +46,15 @@ export default function Login() {
     const username = form.username.trim();
     const password = form.password;
 
-    if (!username) return setErr("Укажите логин.");
-    if (!password) return setErr("Введите пароль.");
+    if (!username) return setErr("Логинді жазыңыз.");
+    if (!password) return setErr("Құпиясөзді жазыңыз.");
 
     setLoading(true);
     try {
       await login({ username, password });
       nav(from, { replace: true });
     } catch (e) {
-      setErr(e?.response?.data?.message || e?.message || "Ошибка входа. Проверьте логин и пароль.");
+      setErr(e?.response?.data?.message || e?.message || "Кіру мүмкін болмады. Кейінірек қайтадан көріңіз.");
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export default function Login() {
               <h1 className="bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
                 Qazaq Mind
               </h1>
-              <p className="mt-1 text-sm text-slate-600">Кіру / Вход</p>
+              <p className="mt-1 text-sm text-slate-600">Кіру</p>
             </div>
 
             {info && (
@@ -106,7 +106,7 @@ export default function Login() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Пароль</label>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Құпиясөз</label>
                 <div className="relative">
                   <input
                     className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 pr-12 text-slate-900 outline-none transition focus:border-teal-400 focus:bg-white focus:shadow-[0_0_0_4px_rgba(13,148,136,0.08)]"
@@ -121,7 +121,7 @@ export default function Login() {
                     type="button"
                     onClick={() => setShowPass((s) => !s)}
                     className="absolute inset-y-0 right-3 my-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
-                    aria-label={showPass ? "Скрыть пароль" : "Показать пароль"}
+                    aria-label={showPass ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
                   >
                     {showPass ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
@@ -149,15 +149,14 @@ export default function Login() {
 
             <div className="mt-5 flex items-center justify-between text-sm text-slate-600">
               <Link to="/register" className="rounded-lg px-2 py-1 text-teal-700 hover:bg-teal-50">
-                Нет аккаунта? Регистрация
+                Аккаунт жоқ па? Тіркелу
               </Link>
               <span className="text-slate-400">•</span>
-              <span className="rounded-lg px-2 py-1 text-slate-400" title="Скоро">Забыли пароль?</span>
             </div>
           </div>
 
           <div className="mt-6 text-center text-xs text-slate-500">
-            © {new Date().getFullYear()} Qazaq Mind · Human-centric learning
+            © {new Date().getFullYear()} Qazaq Mind
           </div>
         </motion.div>
       </div>
