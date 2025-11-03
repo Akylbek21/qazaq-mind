@@ -189,14 +189,32 @@ export default function LifeCharge() {
   }, []);
 
   const togglePq = async (taskId) => {
-    // Оптимистично переключаем
-    setPqDoneMap((m) => ({ ...m, [taskId]: !m[taskId] }));
     const prev = !!pqDoneMap[taskId];
+    
+    // Оптимистично переключаем
+    setPqDoneMap((m) => ({ ...m, [taskId]: !prev }));
+    
     try {
-      const completed = await togglePQTask(taskId, todayStr(), prev);
-      setPqDoneMap((m) => ({ ...m, [taskId]: !!completed }));
+      const result = await togglePQTask({ taskId, day: todayStr() });
+      
+      // Логируем для отладки
+      console.log("[LifeCharge] togglePQ result:", result);
+      
+      // result содержит объект с полем completed
+      // Убеждаемся, что completed - это boolean
+      const completed = result?.completed ?? !prev;
+      
+      console.log("[LifeCharge] completed value:", completed, "type:", typeof completed);
+      
+      // Обновляем состояние на основе ответа сервера
+      setPqDoneMap((m) => {
+        const newMap = { ...m, [taskId]: !!completed };
+        console.log("[LifeCharge] Updated pqDoneMap:", newMap);
+        return newMap;
+      });
     } catch (e) {
-      // откат
+      console.error("[LifeCharge] togglePQ error:", e);
+      // откат при ошибке
       setPqDoneMap((m) => ({ ...m, [taskId]: prev }));
       setPqErr(humanize(e));
     }

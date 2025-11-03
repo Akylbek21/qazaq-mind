@@ -6,10 +6,11 @@ export const API = {
   ANSWER: "/api/pq/answer",
   SUMMARY: "/api/pq/summary",
 
-  // возможные варианты для "toggle"
-  TOGGLE_TASK: (id) => `/api/pq/tasks/${id}/toggle`,
-  TASK_STATUS: (id) => `/api/pq/tasks/${id}/status`,
-  TOGGLE_FALLBACK: "/api/pq/toggle",
+  // Toggle endpoint: POST /api/pq/toggle/{{taskId}}?day={{today}}
+  TOGGLE_TASK: (id, day) => {
+    const path = `/api/pq/toggle/${id}`;
+    return day ? `${path}?day=${encodeURIComponent(day)}` : path;
+  },
 };
 
 const ensureId = (name, v) => {
@@ -19,10 +20,33 @@ const ensureId = (name, v) => {
   return v;
 };
 
-// ==== существовавшие ранее функции (оставь как были) ====
+// ==== существовавшие ранее функции ====
+/**
+ * Загрузить список PQ задач с сервера.
+ * @param {{fallback?: boolean, withSource?: boolean}} opts
+ * @returns {Promise<Array|{items: Array, source: string}>}
+ */
 export async function fetchPQTasks(opts = {}) {
-  const list = await getJSON(API.TASKS, opts);
-  return Array.isArray(list) ? list : [];
+  try {
+    const list = await getJSON(API.TASKS, opts);
+    const items = Array.isArray(list) ? list : [];
+    
+    // Если запрошен withSource, возвращаем объект с items и source
+    if (opts?.withSource) {
+      return { items, source: 'server' };
+    }
+    
+    return items;
+  } catch (e) {
+    // Если есть fallback и произошла ошибка, возвращаем пустой результат
+    if (opts?.fallback) {
+      if (opts?.withSource) {
+        return { items: [], source: 'fallback' };
+      }
+      return [];
+    }
+    throw e;
+  }
 }
 
 export async function submitPQAnswer({ taskId, chosen }, opts = {}) {
@@ -38,40 +62,32 @@ export async function fetchPQSummary(opts = {}) {
 // ==== НОВОЕ: togglePQTask ====
 /**
  * Переключить/установить состояние задачи PQ.
- * @param {{taskId: number|string, done?: boolean, status?: 'OPEN'|'DONE'}} payload
+ * @param {{taskId: number|string, day?: string}} payload - day в формате YYYY-MM-DD (по умолчанию сегодня)
+ * @returns {Promise<{id: number, user: object, task: object, day: string, completed: boolean}>}
  */
-export async function togglePQTask({ taskId, done = undefined, status = undefined }, opts = {}) {
+export async function togglePQTask({ taskId, day }, opts = {}) {
   const id = ensureId("togglePQTask.taskId", taskId);
-  // нормализуем вход
-  const normalized = {
-    done: typeof done === "boolean" ? done : undefined,
-    status: status || (typeof done === "boolean" ? (done ? "DONE" : "OPEN") : undefined),
-  };
-
-  const candidates = [
-    // самый частый вариант: POST /tasks/{id}/toggle { done: boolean }
-    { path: API.TOGGLE_TASK(id), body: { done: normalized.done } },
-
-    // иногда: POST /tasks/{id}/status { status: 'OPEN'|'DONE' }
-    { path: API.TASK_STATUS(id), body: { status: normalized.status } },
-
-    // универсальный фолбэк: POST /toggle { taskId, done }
-    { path: API.TOGGLE_FALLBACK, body: { taskId: id, done: normalized.done } },
-  ];
-
-  let lastErr;
-  for (const c of candidates) {
-    try {
-      // пропускаем варианты, где тело пустое/бессмысленное
-      if (c.body && Object.values(c.body).every((v) => v === undefined)) continue;
-      const res = await postJSON(c.path, c.body, opts);
-      return res;
-    } catch (e) {
-      lastErr = e;
-      // пробуем следующий маршрут
-    }
-  }
-  throw lastErr || new Error("togglePQTask: ни один из вариантов маршрута не сработал");
+  
+  // Если day не передан, используем сегодняшнюю дату
+  const today = day || new Date().toISOString().split('T')[0];
+  
+  // POST /api/pq/toggle/{{taskId}}?day={{today}}
+  const path = API.TOGGLE_TASK(id, today);
+  
+  // По API toggle обычно не требует body, но если нужно - можно передать пустой объект
+  const res = await postJSON(path, {}, opts);
+  
+  // Логируем для отладки
+  console.log("[pq.js] togglePQTask raw response:", res, "type:", Array.isArray(res) ? "array" : typeof res);
+  
+  // API может вернуть массив с одним объектом или просто объект
+  // Обрабатываем оба случая
+  const result = Array.isArray(res) ? res[0] : res;
+  
+  console.log("[pq.js] togglePQTask processed result:", result, "completed:", result?.completed);
+  
+  // Возвращаем весь объект ответа (содержит id, user, task, day, completed)
+  return result;
 }
 
 // оставляем удобный default (если он использовался)

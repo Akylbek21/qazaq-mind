@@ -249,8 +249,22 @@ export default function ThinkHub() {
                     <p className="text-sm text-slate-600 font-medium">{b.author}</p>
                   </div>
 
-                  {/* Кнопка */}
-                  <div className="flex justify-center">
+                  {/* Кнопки */}
+                  <div className="flex flex-col gap-3">
+                    {b.bookUrl && (
+                      <a
+                        href={b.bookUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group/btn relative rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden text-center"
+                      >
+                        <span className="relative z-10 flex items-center justify-center gap-2">
+                          <span>📖 Кітапты оқу</span>
+                          <span className="group-hover/btn:translate-x-1 transition-transform duration-300">↗</span>
+                        </span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                      </a>
+                    )}
                     <button
                       onClick={() => startBook(b)}
                       className="group/btn relative rounded-xl bg-gradient-to-r from-[#1F7A8C] via-[#1aa6b5] to-[#0ea5a5] text-white px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden"
@@ -295,16 +309,29 @@ export default function ThinkHub() {
                 📖
               </div>
             )}
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <h3 className="text-xl font-bold text-slate-900">{book?.title}</h3>
               <p className="text-xs text-slate-500">{book?.author}</p>
             </div>
-            <button
-              onClick={restart}
-              className="ml-auto rounded-xl border px-3 py-2 text-sm font-semibold"
-            >
-              Кітаптарға оралу
-            </button>
+            <div className="flex gap-2">
+              {book?.bookUrl && (
+                <a
+                  href={book.bookUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-xl border-2 border-amber-500 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-2 text-sm font-semibold text-amber-700 hover:bg-gradient-to-r hover:from-amber-100 hover:to-orange-100 transition-all duration-300 flex items-center gap-2"
+                >
+                  <span>📖</span>
+                  <span>Кітапты оқу</span>
+                </a>
+              )}
+              <button
+                onClick={restart}
+                className="rounded-xl border-2 border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all duration-300"
+              >
+                Кітаптарға оралу
+              </button>
+            </div>
           </div>
 
           {loadingQs && (

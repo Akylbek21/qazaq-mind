@@ -59,7 +59,16 @@ export function AuthProvider({ children }) {
       if (data) {
         const u = data.username || data.user || data.name || null;
         const r = data.role ? String(data.role).toUpperCase() : null;
-        setUser(data);
+        
+        // Сохраняем текущий score если сервер не вернул его (но обычно сервер всегда возвращает)
+        const currentScore = user?.score;
+        const newUser = {
+          ...data,
+          // Используем score с сервера, если он есть, иначе сохраняем текущий
+          score: data.score !== undefined && data.score !== null ? data.score : (currentScore !== undefined ? currentScore : null)
+        };
+        
+        setUser(newUser);
         if (u) setUsername(u);
         if (r) setRole(r);
 
@@ -99,7 +108,12 @@ export function AuthProvider({ children }) {
     setRole(r);
     setUsername(u);
     // оптимистично установим профиль (дальше обновим с сервера)
-    setUser({ username: u || null, role: r || null, score: null });
+    // Не сбрасываем score - он будет обновлен с сервера через fetchProfile
+    setUser((prev) => ({ 
+      username: u || null, 
+      role: r || null, 
+      score: prev?.score ?? null 
+    }));
 
     localStorage.setItem(LS.token, t);
     if (r) localStorage.setItem(LS.role, r);
@@ -161,7 +175,7 @@ export function AuthProvider({ children }) {
       fetchProfile, // Экспорт для обновления профиля
       http,
     }),
-    [token, role, username]
+    [token, role, username, user]
   );
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;

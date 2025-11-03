@@ -46,6 +46,7 @@ export default function HistoricalQuiz() {
   const [questions, setQuestions] = React.useState([]);
   const [result, setResult] = React.useState(null);
   const [chatPersonality, setChatPersonality] = React.useState(null);
+  const [showNotConnectedMessage, setShowNotConnectedMessage] = React.useState(false);
 
   React.useEffect(() => {
     // Загружаем список тестов при монтировании
@@ -222,7 +223,10 @@ export default function HistoricalQuiz() {
                     Тестті қайта өту
                   </button>
                   <button 
-                    onClick={() => setChatPersonality(personalities[result.personality])} 
+                    onClick={() => {
+                      setShowNotConnectedMessage(true);
+                      setTimeout(() => setShowNotConnectedMessage(false), 3000);
+                    }} 
                     className="btn btn-primary"
                   >
                     ✨ {personalities[result.personality].name.split(" ")[0]}мен сөйлесу
@@ -241,6 +245,34 @@ export default function HistoricalQuiz() {
       <AnimatePresence>
         {chatPersonality && (
           <ChatModal personality={chatPersonality} onClose={() => setChatPersonality(null)} />
+        )}
+      </AnimatePresence>
+
+      {/* Not Connected Message */}
+      <AnimatePresence>
+        {showNotConnectedMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50"
+          >
+            <div className="bg-white rounded-xl shadow-2xl border-2 border-amber-400 px-6 py-4 max-w-md mx-4">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                  <span className="text-2xl">⚠️</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-slate-800 font-semibold text-base">
+                    Бұл функция әлі қосылмады
+                  </p>
+                  <p className="text-slate-600 text-sm mt-1">
+                    Келесі нұсқаларда қолжетімді болады
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

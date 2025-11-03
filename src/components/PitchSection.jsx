@@ -99,7 +99,7 @@ const PitchSection = ({ imageUrl }) => {
             </span>
             <br />
             <span className="text-xl md:text-3xl lg:text-4xl text-slate-700">
-              — толық адам
+              = толық адам
             </span>
           </motion.p>
           
