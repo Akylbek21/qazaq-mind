@@ -12,21 +12,40 @@ const DEFAULT_TIMEOUT = 0; // Timeout жоқ (шексіз күту)
 // Источники baseURL, в порядке приоритета
 // В dev режиме используем относительный путь (через Vite proxy)
 // В production - через nginx proxy (/api) или прямой URL из env
-const rawBase = import.meta.env.DEV
-  ? "/api" // Dev: через Vite proxy (избегаем CORS)
-  : (import.meta.env.VITE_QAZAQMIND_SERVICE &&
-      String(import.meta.env.VITE_QAZAQMIND_SERVICE).trim()) ||
-    (import.meta.env.VITE_QM_API_URL &&
-      String(import.meta.env.VITE_QM_API_URL).trim()) ||
-    "/api"; // Production: через nginx proxy (по умолчанию)
+const getBaseURL = () => {
+  if (import.meta.env.DEV) {
+    return "/api"; // Dev: через Vite proxy (избегаем CORS)
+  }
+  
+  // Production: проверяем переменные окружения
+  const envService = import.meta.env.VITE_QAZAQMIND_SERVICE?.trim();
+  const envApiUrl = import.meta.env.VITE_QM_API_URL?.trim();
+  
+  // Если явно указан относительный путь (начинается с /), используем его
+  if (envService?.startsWith("/")) {
+    return envService;
+  }
+  if (envApiUrl?.startsWith("/")) {
+    return envApiUrl;
+  }
+  
+  // В production через nginx всегда используем /api (игнорируем прямые http:// URLs)
+  // Если нужно использовать прямой URL, явно установите VITE_QAZAQMIND_SERVICE=/api
+  return "/api";
+};
 
+const rawBase = getBaseURL();
 export const API_BASE = trim(rawBase);
 
-if (import.meta.env.DEV) {
-  // eslint-disable-next-line no-console
-  console.info("[HTTP] baseURL =", API_BASE);
-  console.info("[HTTP] timeout =", DEFAULT_TIMEOUT === 0 ? "DISABLED (шексіз күту)" : DEFAULT_TIMEOUT);
-}
+// Логируем всегда для отладки
+// eslint-disable-next-line no-console
+console.info("[HTTP] baseURL =", API_BASE);
+// eslint-disable-next-line no-console
+console.info("[HTTP] mode =", import.meta.env.DEV ? "DEV" : "PRODUCTION");
+// eslint-disable-next-line no-console
+console.info("[HTTP] env.VITE_QAZAQMIND_SERVICE =", import.meta.env.VITE_QAZAQMIND_SERVICE || "не установлено");
+// eslint-disable-next-line no-console
+console.info("[HTTP] timeout =", DEFAULT_TIMEOUT === 0 ? "DISABLED (шексіз күту)" : DEFAULT_TIMEOUT);
 
 // Токен из известных мест
 export function getAuthToken() {
