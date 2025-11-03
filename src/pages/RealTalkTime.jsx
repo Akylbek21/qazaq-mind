@@ -1,5 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import { fetchEQRandomCard, submitEQAnswer } from "@/api/eq";
 
 const TASKS = [];
@@ -16,7 +17,6 @@ export default function RealTalkTime() {
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState("");
   const [answer, setAnswer] = React.useState("");
-  const [audioUrl, setAudioUrl] = React.useState("");
   const [submitState, setSubmitState] = React.useState({ ok: false, msg: "" });
 
   const [active, setActive] = React.useState(null);
@@ -53,7 +53,7 @@ export default function RealTalkTime() {
       await submitEQAnswer({
         cardId: card.id,
         text: answer.trim(),
-        audioUrl: audioUrl.trim() || null,
+        audioUrl: null,
       });
       setSubmitState({ ok: true, msg: "Жіберілді" });
     } catch (e) {
@@ -141,13 +141,6 @@ export default function RealTalkTime() {
                   placeholder="Осы жерге жазыңыз…"
                 />
               </div>
-              
-              <input
-                value={audioUrl}
-                onChange={(e) => setAudioUrl(e.target.value)}
-                placeholder="Audio URL (міндетті емес)"
-                className="w-full rounded-xl border-2 border-slate-200 px-4 py-2 outline-none focus:border-[#1F7A8C] focus:ring-2 focus:ring-[#1F7A8C]/20 transition-all duration-300"
-              />
               
               <div className="flex gap-3">
                 <button 
@@ -318,6 +311,21 @@ export default function RealTalkTime() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Кнопка возврата на главную */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="mt-8 flex justify-center"
+      >
+        <Link 
+          to="/" 
+          className="inline-flex items-center justify-center rounded-xl px-6 py-3 border-2 border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-300"
+        >
+          Басты бетке оралу
+        </Link>
+      </motion.div>
     </div>
   );
 }

@@ -25,18 +25,20 @@ const Header = () => {
             <Link className="px-4 py-2 rounded-xl bg-slate-900 text-white font-medium" to="/register">Тіркелу</Link>
           ) : (
             <div className="flex items-center gap-3">
-              <Link 
-                to="/profile" 
-                className="text-sm font-medium text-slate-900 hover:text-indigo-600 transition-colors underline decoration-dotted underline-offset-2"
-                title="Профильді өңдеу"
-              >
+              <span className="text-sm px-3 py-1 rounded-full bg-white border border-slate-200 font-medium text-slate-900">
                 {user?.username || username}
-              </Link>
+              </span>
               <span className="text-sm px-3 py-1 rounded-full bg-slate-100 border border-slate-200">{getLocalizedRoleName(user?.role || role)}</span>
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200">
                 <Coin value={user?.score ?? 0} />
               </div>
-              <button onClick={onLogout} className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50">Шығу</button>
+              <Link 
+                to="/profile" 
+                className="px-3 py-1 rounded-xl border border-slate-200 hover:bg-slate-50 text-sm font-medium text-slate-900 transition-colors"
+              >
+                Профильді өңдеу
+              </Link>
+              <button onClick={onLogout} className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-sm font-medium">Шығу</button>
             </div>
           )}
         </nav>

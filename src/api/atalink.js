@@ -1,6 +1,5 @@
 // src/api/atalink.js
 import { getJSON, postJSON } from "./client";
-import MOCK_ARTICLES from "../data/atalinkArticles";
 
 export const API = {
   ARTICLES: "/api/atalink/articles",
@@ -26,19 +25,8 @@ const toLetter = (v) => {
 };
 
 export async function fetchAtaArticles(opts = {}) {
-  try {
-    const list = await getJSON(API.ARTICLES, opts);
-    if (Array.isArray(list) && list.length > 0) return list;
-    // fallthrough to mock in dev if empty
-  } catch (e) {
-    // если ошибка и мы в режиме разработки — вернуть мок
-    if (import.meta.env && import.meta.env.DEV) {
-      return MOCK_ARTICLES;
-    }
-    throw e;
-  }
-  // когда сервер вернул пустой массив — в dev используем локальный мок, иначе возвращаем []
-  return import.meta.env && import.meta.env.DEV ? MOCK_ARTICLES : [];
+  const list = await getJSON(API.ARTICLES, opts);
+  return Array.isArray(list) ? list : [];
 }
 
 export async function fetchAtaArticle(articleId, opts = {}) {

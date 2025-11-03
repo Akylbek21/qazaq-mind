@@ -8,14 +8,6 @@ const DEFAULT_IMAGE = "/iq-eq-sq-pq.jpeg";
 const PitchSection = ({ imageUrl }) => {
   const imgSrc = imageUrl || DEFAULT_IMAGE;
 
-  // Карточки для IQ, EQ, SQ, PQ
-  const cards = [
-    { label: "IQ", icon: "🧠", color: "from-blue-500 to-indigo-600", bg: "from-blue-50 to-indigo-50", border: "border-blue-300" },
-    { label: "EQ", icon: "❤️", color: "from-pink-500 to-rose-600", bg: "from-pink-50 to-rose-50", border: "border-pink-300" },
-    { label: "SQ", icon: "👥", color: "from-purple-500 to-violet-600", bg: "from-purple-50 to-violet-50", border: "border-purple-300" },
-    { label: "PQ", icon: "💪", color: "from-emerald-500 to-green-600", bg: "from-emerald-50 to-green-50", border: "border-emerald-300" },
-  ];
-
   return (
     <AnimatedSection className="bg-gradient-to-b from-slate-50 via-white to-slate-50 py-20 md:py-28">
       <div className="container mx-auto max-w-6xl px-4 md:px-6">
@@ -33,7 +25,7 @@ const PitchSection = ({ imageUrl }) => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6"
+            className="text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6"
           >
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#1F7A8C] via-[#1aa6b5] to-[#0ea5a5] drop-shadow-sm">
               Платформа туралы
@@ -46,35 +38,6 @@ const PitchSection = ({ imageUrl }) => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mx-auto h-1 rounded-full bg-gradient-to-r from-[#1F7A8C] via-[#FFD580] to-[#0ea5a5]"
           />
-        </motion.div>
-
-        {/* КАРТОЧКИ IQ, EQ, SQ, PQ */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12 md:mb-16"
-        >
-          {cards.map((card, idx) => (
-            <motion.div
-              key={card.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 + idx * 0.1 }}
-              whileHover={{ scale: 1.05, y: -5 }}
-              className={`relative rounded-2xl border-2 ${card.border} bg-gradient-to-br ${card.bg} p-6 md:p-8 shadow-lg hover:shadow-xl transition-all duration-300`}
-            >
-              <div className={`text-4xl md:text-5xl mb-3 bg-gradient-to-br ${card.color} bg-clip-text text-transparent`}>
-                {card.icon}
-              </div>
-              <div className={`text-2xl md:text-3xl font-extrabold bg-gradient-to-r ${card.color} bg-clip-text text-transparent`}>
-                {card.label}
-              </div>
-              <div className={`absolute -inset-0.5 rounded-2xl bg-gradient-to-r ${card.color} opacity-0 hover:opacity-20 blur-xl transition-opacity duration-300`} />
-            </motion.div>
-          ))}
         </motion.div>
 
         {/* ИЗОБРАЖЕНИЕ */}
@@ -129,13 +92,13 @@ const PitchSection = ({ imageUrl }) => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className="text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4"
+            className="text-2xl md:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4"
           >
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#1F7A8C] via-[#1aa6b5] to-[#0ea5a5] inline-block">
               IQ + EQ + SQ + PQ
             </span>
             <br />
-            <span className="text-2xl md:text-4xl lg:text-5xl text-slate-700">
+            <span className="text-xl md:text-3xl lg:text-4xl text-slate-700">
               — толық адам
             </span>
           </motion.p>

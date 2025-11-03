@@ -1,6 +1,7 @@
 // src/pages/ThinkHub.jsx
 import React from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import {
   fetchSQBooks,
   fetchSQBookQuestions,
@@ -497,6 +498,21 @@ export default function ThinkHub() {
           )}
         </div>
       )}
+
+      {/* Кнопка возврата на главную */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="mt-8 flex justify-center"
+      >
+        <Link 
+          to="/" 
+          className="inline-flex items-center justify-center rounded-xl px-6 py-3 border-2 border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-300"
+        >
+          Басты бетке оралу
+        </Link>
+      </motion.div>
     </div>
   );
 }

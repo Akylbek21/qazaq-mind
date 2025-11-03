@@ -213,44 +213,6 @@ export default function UserInsightBlock() {
       ) : (
         <>
 
-          {/* Общий индекс прогресса */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="rounded-xl border-2 border-indigo-200/50 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 p-6 shadow-lg"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">🎯</span>
-                  <div>
-                    <div className="text-slate-900 font-bold text-lg">Жалпы прогресс</div>
-                    <div className="text-slate-600 text-xs mt-0.5 font-medium">Орташа мән</div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-5">
-                <ProgressRing size={95} stroke={11} percentage={overall} label={fmtPct(overall)} lightMode />
-                <div className="text-sm text-slate-700 leading-relaxed space-y-2">
-                  <div className="flex items-start gap-1.5">
-                    <span className="text-indigo-600 mt-0.5 font-bold">•</span>
-                    <span>IQ/EQ/SQ/PQ көрсеткіштерінің орташа мәні</span>
-                  </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
-                    <span className="text-slate-600 text-xs font-medium">Мақсат:</span>
-                    <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-300">
-                      {fmtPct(75)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            <NextActionCard weakest={weakest} />
-
-            <DomainHeat wrongByDomain={insight.iq.wrongByDomain} />
-          </div>
-
           {/* Кольцевые бейджи по осям */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-8">
             <MetricCard

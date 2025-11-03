@@ -10,12 +10,7 @@ const Footer = () => (
         <svg width="32" height="32" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#38bdf8"/><path d="M12 7v5l3 2" stroke="#facc15" strokeWidth="1.5" strokeLinecap="round"/></svg>
         <span className="text-xl font-bold tracking-wide bg-gradient-to-r from-yellow-300 via-sky-400 to-yellow-400 bg-clip-text text-transparent drop-shadow">Qazaq Mind</span>
       </div>
-      <p className="text-slate-300 text-sm md:text-base mb-2">&copy; {new Date().getFullYear()} Барлық құқықтар қорғалған.</p>
-      <div className="flex gap-4 mt-2">
-        <a href="https://t.me/" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform"><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#38bdf8"/><path d="M7 12.5l4.2 1.7c.3.1.6.1.8-.2l4.2-5.2c.2-.2-.1-.5-.4-.4l-8.2 2.7c-.4.1-.4.7 0 .8z" fill="#fff"/></svg></a>
-        <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform"><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#facc15"/><circle cx="12" cy="12" r="5" fill="#fff"/><circle cx="18" cy="6" r="1.2" fill="#f59e0b"/></svg></a>
-        <a href="mailto:info@qazaqmind.kz" className="hover:scale-110 transition-transform"><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#1e293b"/><path d="M6 8l6 5 6-5" stroke="#38bdf8" strokeWidth="1.5"/><rect x="6" y="8" width="12" height="8" rx="2" stroke="#38bdf8" strokeWidth="1.5"/></svg></a>
-      </div>
+      <p className="text-slate-300 text-sm md:text-base mb-2">&copy; {new Date().getFullYear()} Qazaq Mind</p>
     </div>
   </footer>
 );

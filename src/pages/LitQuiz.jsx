@@ -99,7 +99,7 @@ export default function LitQuiz() {
                 <p className="mt-3 text-slate-600">Керемет! Қаласаңыз, қайта байқап көріңіз.</p>
                 <div className="mt-6 flex gap-3 justify-center">
                   <button className="btn btn-tertiary" onClick={restart}>Қайта өту</button>
-                  <button className="btn btn-primary" onClick={() => navigate(-1)}>Басты бет</button>
+                  <button className="btn btn-primary" onClick={() => navigate("/")}>Басты бетке оралу</button>
                 </div>
               </div>
             </motion.div>

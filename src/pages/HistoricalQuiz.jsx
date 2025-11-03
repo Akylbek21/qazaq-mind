@@ -128,8 +128,8 @@ export default function HistoricalQuiz() {
                 Тестті бастау
               </button>
               <div className="mt-6">
-                <button onClick={() => navigate(-1)} className="btn btn-terтіary">
-                  ⟵ Басты бетке
+                <button onClick={() => navigate("/")} className="btn btn-tertiary">
+                  ⟵ Басты бетке оралу
                 </button>
               </div>
             </motion.div>

@@ -1,7 +1,6 @@
 import React from "react";
-import { motion } from "framer-motion";
 
-function Icon({ type = "star", className = "w-3.5 h-3.5" }) {
+function Icon({ type = "coin", className = "w-3.5 h-3.5" }) {
   if (type === "bolt") {
     return (
       <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
@@ -18,13 +17,20 @@ function Icon({ type = "star", className = "w-3.5 h-3.5" }) {
       </svg>
     );
   }
-  // star (default)
+  if (type === "star") {
+    return (
+      <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+        <path
+          d="m12 3.5 2.4 4.86 5.36.78-3.88 3.78.92 5.35L12 16.9l-4.8 2.37.92-5.35L4.24 9.14l5.36-.78L12 3.5Z"
+          fill="#A16207"
+        />
+      </svg>
+    );
+  }
+  // coin (default) - простая иконка монеты
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <path
-        d="m12 3.5 2.4 4.86 5.36.78-3.88 3.78.92 5.35L12 16.9l-4.8 2.37.92-5.35L4.24 9.14l5.36-.78L12 3.5Z"
-        fill="#A16207"
-      />
+      <circle cx="12" cy="12" r="10" fill="#F59E0B"/>
     </svg>
   );
 }
@@ -32,7 +38,7 @@ function Icon({ type = "star", className = "w-3.5 h-3.5" }) {
 export default function Coin({
   value,
   size = "default",
-  icon = "star", // 'star' | 'bolt' | 'trophy'
+  icon = "coin", // 'coin' | 'star' | 'bolt' | 'trophy'
   unitLabel = "ұпай",
 }) {
   const sizeClasses = {
@@ -44,32 +50,9 @@ export default function Coin({
 
   return (
     <div className="inline-flex items-center gap-1.5">
-      <motion.div
-        className={`relative ${sz.box}`}
-        initial={{ rotate: 0 }}
-        whileHover={{ rotate: 360, scale: 1.08 }}
-        transition={{ duration: 0.6 }}
-      >
-        {/* Рама монеты */}
-        <div className="absolute inset-0 rounded-full shadow-md bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500" />
-        {/* Внутренний диск */}
-        <div className={`absolute ${sz.inset} rounded-full flex items-center justify-center bg-gradient-to-br from-amber-200 to-amber-300`}>
-          <Icon type={icon} />
-        </div>
-        {/* Блик-”shine” (мягкая анимация пробегающего света) */}
-        <motion.div
-          className={`pointer-events-none absolute ${sz.shine} rounded-full`}
-          initial={{ rotate: -25, x: "-120%" }}
-          whileHover={{ x: "120%" }}
-          transition={{ duration: 1.1, ease: "easeInOut" }}
-          style={{
-            background:
-              "linear-gradient(120deg, rgba(255,255,255,0) 20%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 80%)",
-          }}
-        />
-        {/* Тонкое внутреннее кольцо (тиснение) */}
-        <div className="absolute inset-[20%] rounded-full ring-1 ring-amber-400/70" />
-      </motion.div>
+      <div className={`${sz.box} flex items-center justify-center`}>
+        <Icon type={icon} />
+      </div>
 
       <span className={`font-medium ${sz.text}`}>
         {value} {unitLabel}

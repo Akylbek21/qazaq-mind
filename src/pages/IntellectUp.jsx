@@ -318,10 +318,6 @@ export default function IntellectUp() {
           >
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-semibold text-slate-700">Сұрақ {step} / {questions.length}</span>
-              <div className={`flex items-center gap-2 font-bold text-lg ${timeColor}`}>
-                <span className="text-xl">⏱</span>
-                <span>{timeLeft} с</span>
-              </div>
             </div>
             <div className="w-full h-3 bg-slate-200/70 rounded-full overflow-hidden">
               <motion.div 
@@ -549,7 +545,7 @@ export default function IntellectUp() {
           to="/" 
           className="inline-flex items-center justify-center rounded-xl px-6 py-3 border-2 border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-300"
         >
-          Басты бетке
+          Басты бетке оралу
         </SmartLink>
       </div>
     </div>
