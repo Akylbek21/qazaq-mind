@@ -23,7 +23,7 @@ export default ({ mode }) => {
           target: apiTarget, 
           changeOrigin: true, 
           secure: false,
-          timeout: 0, // Timeout жоқ (шексіз күту)
+          timeout: 0,
           configure: (proxy, options) => {
             proxy.on('error', (err, req, res) => {
               console.error('❌ Proxy Error:', err.message);
