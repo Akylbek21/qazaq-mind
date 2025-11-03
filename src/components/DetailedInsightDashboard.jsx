@@ -39,19 +39,21 @@ export default function DetailedInsightDashboard() {
       const status = e?.response?.status;
       const serverMessage = e?.response?.data?.message || e?.response?.data?.error;
       
-      let errorMessage = e?.message || "Қате орын алды";
-      
       if (status === 400) {
-        errorMessage = `Нашар сұраным (400): ${serverMessage || "Сервер сұранымды қабылдамады"}`;
-      } else if (status === 401) {
-        errorMessage = "Рұқсат жоқ (401): Сіз жүйеге кіруіңіз керек";
-      } else if (status === 403) {
-        errorMessage = "Қол жетімсіз (403): Сізде бұл ақпаратты көруге рұқсат жоқ. Тек мұғалімдерге қолжетімді.";
-      } else if (serverMessage) {
-        errorMessage = serverMessage;
+        setError(null);
+      } else {
+        let errorMessage = e?.message || "Қате орын алды";
+        
+        if (status === 401) {
+          errorMessage = "Рұқсат жоқ (401): Сіз жүйеге кіруіңіз керек";
+        } else if (status === 403) {
+          errorMessage = "Қол жетімсіз (403): Сізде бұл ақпаратты көруге рұқсат жоқ. Тек мұғалімдерге қолжетімді.";
+        } else if (serverMessage) {
+          errorMessage = serverMessage;
+        }
+        
+        setError(errorMessage);
       }
-      
-      setError(errorMessage);
       setStudents([]);
     } finally {
       setLoading(false);
@@ -116,37 +118,35 @@ export default function DetailedInsightDashboard() {
   const isTeacher = role === "TEACHER";
 
   if (error) {
+    const is400Error = error.includes("400") || error.includes("Нашар сұраным");
+    
     return (
       <div className="space-y-4">
-        {/* Информация о пользователе */}
-        {username && (
-          <div className="rounded-lg border border-blue-500/40 bg-blue-500/10 text-blue-200 px-4 py-3">
-            <div className="text-sm">
-              Қолданушы: <strong>{username}</strong> • Рөлі: <strong>{roleName}</strong>
-            </div>
-          </div>
-        )}
-        
-        {/* Предупреждение, если не учитель (этот раздел только для учителей) */}
         {!isTeacher && (
-          <div className="rounded-lg border border-yellow-500/40 bg-yellow-500/10 text-yellow-200 px-4 py-3">
+          <div className="rounded-xl border border-yellow-500/40 bg-yellow-500/10 text-yellow-200 px-4 py-3">
             <div className="flex items-center gap-2">
               <span className="text-yellow-300 text-lg">⚠️</span>
               <div>
                 <div className="font-semibold">Рұқсат шектелген</div>
                 <div className="text-sm mt-1">
-                  Бұл бөлім тек <strong>Мұғалімдерге</strong> арналған. Барлық оқушылардың статистикасын көру үшін мұғалім рөлімен кіріңіз.
+                  Бұл бөлім тек <strong>Мұғалімдерге</strong> арналған.
                 </div>
               </div>
             </div>
           </div>
         )}
         
-        <div className="rounded-lg border border-red-500/40 bg-red-500/10 text-red-200 px-4 py-3">
-          Қате: {error}
-        </div>
+        {!is400Error && (
+          <div className="rounded-xl border border-red-500/40 bg-red-500/10 text-red-200 px-4 py-3">
+            {error}
+          </div>
+        )}
       </div>
     );
+  }
+
+  if (!students.length || (stats.totalScore === 0 && stats.avgIQ === 0 && stats.avgEQ === 0 && stats.avgSQ === 0 && stats.avgPQ === 0)) {
+    return null;
   }
 
   return (

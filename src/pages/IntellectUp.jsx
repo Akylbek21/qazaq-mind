@@ -243,119 +243,184 @@ export default function IntellectUp() {
 
         {/* Intro */}
         {!started && !finished && step === 0 && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-6 text-center">
-            <div className="mt-2 flex flex-col items-center gap-3">
-              {iqLoading && <div className="text-sm text-slate-500">Жүктелуде…</div>}
-              {iqError && (
-                <>
-                  <div className="text-sm text-rose-600">{iqError}</div>
-                  <button onClick={loadIQ} className="rounded-xl px-4 py-2 border font-semibold">Қайталап көру</button>
-                </>
-              )}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-6"
+          >
+            <div className="rounded-2xl border border-slate-200/70 bg-white/90 backdrop-blur-xl p-8 shadow-[0_10px_30px_rgba(16,37,66,0.08)]">
+              <div className="flex flex-col items-center gap-6">
+                {iqLoading && (
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <div className="animate-spin h-5 w-5 border-2 border-[#1F7A8C] border-t-transparent rounded-full"></div>
+                    <span>Жүктелуде…</span>
+                  </div>
+                )}
+                {iqError && (
+                  <div className="w-full max-w-md">
+                    <div className="text-sm text-rose-600 bg-rose-50 rounded-xl p-4 mb-3">{iqError}</div>
+                    <button 
+                      onClick={loadIQ} 
+                      className="w-full rounded-xl px-4 py-2 border-2 border-rose-300 text-rose-700 font-semibold hover:bg-rose-50 transition-all duration-300"
+                    >
+                      Қайталап көру
+                    </button>
+                  </div>
+                )}
 
-              {/* Выбор теста */}
-              {!iqLoading && !iqError && tests.length > 0 && (
-                <div className="w-full max-w-xs text-left">
-                  <label className="block text-sm text-slate-600 mb-1">Тест таңдау</label>
-                  <select
-                    value={activeTestId ?? tests[0]?.id ?? ""}
-                    onChange={(e) => setActiveTestId(Number(e.target.value))}
-                    className="w-full rounded-xl border px-3 py-2"
+                {!iqLoading && !iqError && tests.length > 0 && (
+                  <div className="w-full max-w-md">
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Тест таңдау</label>
+                    <select
+                      value={activeTestId ?? tests[0]?.id ?? ""}
+                      onChange={(e) => setActiveTestId(Number(e.target.value))}
+                      className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 outline-none focus:border-[#1F7A8C] focus:ring-2 focus:ring-[#1F7A8C]/20 transition-all duration-300 bg-white"
+                    >
+                      {tests.map((t) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {!iqLoading && !iqError && (
+                  <button
+                    onClick={start}
+                    disabled={!tests.length}
+                    className="group/btn relative inline-flex items-center justify-center rounded-xl px-8 py-4 bg-gradient-to-r from-[#1F7A8C] via-[#1aa6b5] to-[#0ea5a5] text-white font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden"
                   >
-                    {tests.map((t) => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
+                    <span className="relative z-10 flex items-center gap-2">
+                      🚀 Бастау
+                      <span className="group-hover/btn:translate-x-1 transition-transform duration-300">→</span>
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#0ea5a5] via-[#1aa6b5] to-[#1F7A8C] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                  </button>
+                )}
 
-              {!iqLoading && !iqError && (
-                <button
-                  onClick={start}
-                  disabled={!tests.length}
-                  className="inline-flex items-center justify-center rounded-xl px-5 py-3 bg-[#1F7A8C] text-white font-semibold shadow hover:opacity-95 disabled:opacity-40"
-                >
-                  Бастау
-                </button>
-              )}
-
-              {!iqLoading && !iqError && tests.length === 0 && (
-                <div className="text-sm text-slate-500">Тесттер жоқ.</div>
-              )}
+                {!iqLoading && !iqError && tests.length === 0 && (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-3">📚</div>
+                    <p className="text-slate-500 font-medium">Тесттер жоқ</p>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
 
         {/* Progress + Timer */}
         {started && !finished && (
-          <div className="mt-8">
-            <div className="flex items-center justify-between text-sm text-slate-600 mb-2">
-              <span>Сұрақ {step}/{questions.length}</span>
-              <span className={`font-semibold ${timeColor}`}>Қалған уақыт: {timeLeft} с</span>
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 rounded-2xl border border-slate-200/70 bg-white/90 backdrop-blur-xl p-6 shadow-[0_10px_30px_rgba(16,37,66,0.08)]"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-semibold text-slate-700">Сұрақ {step} / {questions.length}</span>
+              <div className={`flex items-center gap-2 font-bold text-lg ${timeColor}`}>
+                <span className="text-xl">⏱</span>
+                <span>{timeLeft} с</span>
+              </div>
             </div>
-            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-2 bg-gradient-to-r from-[#1F7A8C] to-[#1aa6b5] transition-all" style={{ width: `${progressPct}%` }} />
+            <div className="w-full h-3 bg-slate-200/70 rounded-full overflow-hidden">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPct}%` }}
+                transition={{ duration: 0.3 }}
+                className="h-3 rounded-full bg-gradient-to-r from-[#1F7A8C] via-[#1aa6b5] to-[#0ea5a5]"
+              />
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Question */}
         {started && !finished && step > 0 && questions.length > 0 && (
-          <motion.div key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            className="mt-6 rounded-2xl border border-slate-200 bg-white/80 backdrop-blur p-5 shadow">
-            <h2 className="text-xl font-semibold text-slate-900">{questions[step - 1].q}</h2>
+          <motion.div 
+            key={step} 
+            initial={{ opacity: 0, x: 20 }} 
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mt-6 rounded-2xl border border-slate-200/70 bg-white/90 backdrop-blur-xl p-6 shadow-[0_10px_30px_rgba(16,37,66,0.08)]"
+          >
+            <h2 className="text-xl font-bold text-slate-900 leading-relaxed mb-6">{questions[step - 1].q}</h2>
 
-            {questions[step - 1].imageUrl ? (
-              <div className="mt-4 flex justify-center">
-                <img
-                  src={questions[step - 1].imageUrl}
-                  alt={questions[step - 1].q?.slice(0, 120) ?? "question image"}
-                  className="max-h-48 w-auto rounded-lg object-contain border border-slate-200"
-                />
+            {questions[step - 1].imageUrl && (
+              <div className="mt-4 mb-6 flex justify-center">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#1F7A8C]/20 to-[#0ea5a5]/20 rounded-xl blur-xl" />
+                  <img
+                    src={questions[step - 1].imageUrl}
+                    alt={questions[step - 1].q?.slice(0, 120) ?? "question image"}
+                    className="relative max-h-64 w-auto rounded-xl object-contain border-2 border-slate-200 shadow-lg"
+                  />
+                </div>
               </div>
-            ) : null}
+            )}
 
             <div className="mt-4 grid gap-3">
               {questions[step - 1].options.map((opt, i) => {
                 const checked = answers[step - 1] === opt;
                 return (
-                  <button
+                  <motion.button
                     key={`${questions[step - 1].id}-${i}`}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => selectOption(step - 1, opt)}
-                    className={`text-left rounded-xl border px-4 py-3 transition focus:outline-none focus:ring-2 focus:ring-sky-400 ${
-                      checked ? "border-[#1F7A8C] bg-[#1F7A8C]/10" : "border-slate-200 hover:bg-slate-50"
+                    className={`group text-left rounded-xl border-2 px-5 py-4 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#1F7A8C]/40 ${
+                      checked 
+                        ? "border-[#1F7A8C] bg-gradient-to-r from-[#1F7A8C]/10 to-[#0ea5a5]/10 shadow-md" 
+                        : "border-slate-200 hover:border-[#1F7A8C]/50 hover:bg-slate-50"
                     }`}
                     aria-pressed={checked}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold
-                        ${checked ? "bg-[#1F7A8C] text-white" : "bg-slate-200 text-slate-700"}`}>
+                    <div className="flex items-center gap-4">
+                      <span className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-all duration-300
+                        ${checked ? "bg-gradient-to-r from-[#1F7A8C] to-[#0ea5a5] text-white shadow-lg scale-110" : "bg-slate-200 text-slate-700 group-hover:bg-slate-300"}`}>
                         {i + 1}
                       </span>
-                      <span>{opt}</span>
+                      <span className="flex-1 text-slate-800 font-medium">{opt}</span>
+                      {checked && (
+                        <motion.span 
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="text-[#1F7A8C] text-xl"
+                        >
+                          ✓
+                        </motion.span>
+                      )}
                     </div>
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
 
-            <div className="mt-5 flex justify-between items-center">
+            <div className="mt-6 flex justify-between items-center gap-4">
               <button
                 onClick={prev}
                 disabled={step === 1}
-                className="inline-flex items-center justify-center rounded-xl px-4 py-2 border border-slate-300 font-medium text-slate-700 disabled:opacity-40"
+                className="inline-flex items-center justify-center rounded-xl px-5 py-2.5 border-2 border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 ⟵ Артқа
               </button>
 
-              <div className="text-slate-500 text-sm hidden sm:block">1–4 пернелерімен таңдауға болады</div>
+              <div className="text-slate-500 text-xs sm:text-sm hidden sm:block text-center">
+                Кеңес: 1–4 пернелерімен таңдауға болады
+              </div>
 
               <button
                 onClick={next}
                 disabled={!Object.prototype.hasOwnProperty.call(answers, step - 1)}
-                className="inline-flex items-center justify-center rounded-xl px-5 py-2.5 bg-slate-900 text-white font-medium disabled:opacity-40"
+                className="group/btn relative inline-flex items-center justify-center rounded-xl px-6 py-2.5 bg-gradient-to-r from-[#1F7A8C] via-[#1aa6b5] to-[#0ea5a5] text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden"
               >
-                {step < questions.length ? "Келесі ⟶" : "Аяқтау"}
+                <span className="relative z-10 flex items-center gap-2">
+                  {step < questions.length ? "Келесі" : "Аяқтау"}
+                  <span className="group-hover/btn:translate-x-1 transition-transform duration-300">→</span>
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0ea5a5] via-[#1aa6b5] to-[#1F7A8C] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
               </button>
             </div>
           </motion.div>
@@ -363,40 +428,82 @@ export default function IntellectUp() {
 
         {/* Result */}
         {finished && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            className="mt-10 rounded-2xl border border-slate-200 bg-white/80 backdrop-blur p-6 shadow">
-            <h3 className="text-2xl font-bold text-slate-900">Нәтиже</h3>
-
-            {iqSubmitting && <p className="mt-2 text-slate-600 text-sm">Серверден тексеру…</p>}
-            {iqSubmitErr && <p className="mt-2 text-rose-600 text-sm">{iqSubmitErr}</p>}
-
-            <p className="mt-2 text-slate-700">
-              Ұпай: <span className="font-semibold">{scoreFromServer} / {totalFromServer}</span>
-              {iqServerRes?.message ? <span className="ml-2 text-slate-500 text-sm">({iqServerRes.message})</span> : null}
-            </p>
-
-            {/* При желании можно отрисовать детали из iqServerRes.details */}
-
-            <div className="mt-6 grid sm:grid-cols-3 gap-3 text-sm">
-              <div className="rounded-xl border p-4">
-                <p className="text-slate-500">Соңғы ұпай (локал)</p>
-                <p className="mt-1 font-semibold">{localScore} / {questions.length}</p>
-              </div>
-              <div className="rounded-xl border p-4">
-                <p className="text-slate-500">Ең үздік нәтиже</p>
-                <p className="mt-1 font-semibold">{Math.max(stats.best ?? 0, localScore)} / {questions.length}</p>
-              </div>
-              <div className="rounded-xl border p-4">
-                <p className="text-slate-500">Талпыныс саны</p>
-                <p className="mt-1 font-semibold">{stats.attempts ?? 1}</p>
-              </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="mt-10 rounded-2xl border border-slate-200/70 bg-white/90 backdrop-blur-xl p-8 shadow-[0_10px_30px_rgba(16,37,66,0.08)]"
+          >
+            <div className="text-center mb-6">
+              <div className="text-6xl mb-4">🎯</div>
+              <h3 className="text-3xl font-extrabold text-slate-900 mb-2">Нәтиже</h3>
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-3">
-              <button onClick={start} className="inline-flex items-center justify-center rounded-xl px-5 py-3 bg-slate-900 text-white font-semibold">
-                Қайта өту
+            {iqSubmitting && (
+              <div className="flex items-center justify-center gap-2 text-slate-600 mb-4">
+                <div className="animate-spin h-5 w-5 border-2 border-[#1F7A8C] border-t-transparent rounded-full"></div>
+                <span>Серверден тексеру…</span>
+              </div>
+            )}
+            {iqSubmitErr && (
+              <div className="mb-4 text-rose-600 bg-rose-50 rounded-xl p-4 text-sm">{iqSubmitErr}</div>
+            )}
+
+            {!iqSubmitting && (
+              <div className="text-center mb-8">
+                <div className="inline-block bg-gradient-to-r from-[#1F7A8C] to-[#0ea5a5] rounded-2xl px-8 py-4 shadow-lg">
+                  <p className="text-white text-sm font-medium mb-1">Ұпай</p>
+                  <p className="text-white text-4xl font-extrabold">
+                    {scoreFromServer} / {totalFromServer}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-8 grid sm:grid-cols-3 gap-4">
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-all duration-300"
+              >
+                <p className="text-slate-600 text-sm font-medium mb-2">Соңғы нәтиже</p>
+                <p className="text-2xl font-bold text-slate-900">{localScore} / {questions.length}</p>
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="rounded-xl border-2 border-[#1F7A8C]/30 bg-gradient-to-br from-[#1F7A8C]/5 to-[#0ea5a5]/5 p-5 shadow-sm"
+              >
+                <p className="text-[#1F7A8C] text-sm font-bold mb-2">Ең үздік</p>
+                <p className="text-2xl font-bold text-[#1F7A8C]">{Math.max(stats.best ?? 0, localScore)} / {questions.length}</p>
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-all duration-300"
+              >
+                <p className="text-slate-600 text-sm font-medium mb-2">Талпыныс саны</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.attempts ?? 1}</p>
+              </motion.div>
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-3 justify-center">
+              <button 
+                onClick={start} 
+                className="group/btn relative inline-flex items-center justify-center rounded-xl px-6 py-3 bg-gradient-to-r from-[#1F7A8C] via-[#1aa6b5] to-[#0ea5a5] text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  🔄 Қайта өту
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0ea5a5] via-[#1aa6b5] to-[#1F7A8C] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
               </button>
-              <button onClick={restart} className="inline-flex items-center justify-center rounded-xl px-5 py-3 border border-slate-300 font-semibold text-slate-700 hover:bg-slate-50">
+              <button 
+                onClick={restart} 
+                className="inline-flex items-center justify-center rounded-xl px-6 py-3 border-2 border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-300"
+              >
                 Басты экран
               </button>
             </div>
@@ -407,20 +514,41 @@ export default function IntellectUp() {
   };
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-10">
-      <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-        className="text-3xl md:text-4xl font-extrabold text-slate-900 text-center">
+    <div className="container mx-auto max-w-6xl px-4 py-10">
+      <motion.h1 
+        initial={{ opacity: 0, y: 10 }} 
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        className="text-3xl md:text-4xl font-extrabold text-slate-900 text-center mb-2"
+      >
         IntellectUp — Danalyq Challenge (IQ)
       </motion.h1>
-      
+      <motion.p 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        transition={{ delay: 0.2 }}
+        className="text-center text-lg text-[#1F7A8C] font-semibold mb-8"
+      >
+        Логика • Жылдамдық • Ойлау
+      </motion.p>
 
       <div className="mt-8">{renderIQ()}</div>
 
       <div className="mt-8 flex flex-wrap gap-3 justify-center">
-        <SmartLink to="/realtalk" className="inline-flex items-center justify-center rounded-xl px-5 py-3 bg-[#1aa6b5] text-white font-semibold shadow hover:opacity-95">
-          RealTalkTime (EQ)
+        <SmartLink 
+          to="/realtalk" 
+          className="group/btn relative inline-flex items-center justify-center rounded-xl px-6 py-3 bg-gradient-to-r from-[#1F7A8C] via-[#1aa6b5] to-[#0ea5a5] text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 overflow-hidden"
+        >
+          <span className="relative z-10 flex items-center gap-2">
+            RealTalkTime (EQ)
+            <span className="group-hover/btn:translate-x-1 transition-transform duration-300">→</span>
+          </span>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0ea5a5] via-[#1aa6b5] to-[#1F7A8C] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
         </SmartLink>
-        <SmartLink to="/" className="inline-flex items-center justify-center rounded-xl px-5 py-3 border border-slate-300 font-semibold text-slate-700 hover:bg-slate-50">
+        <SmartLink 
+          to="/" 
+          className="inline-flex items-center justify-center rounded-xl px-6 py-3 border-2 border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-300"
+        >
           Басты бетке
         </SmartLink>
       </div>

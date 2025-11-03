@@ -6,7 +6,7 @@
 // =============================================
 import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./auth/AuthContext";
+import { AuthProvider, useAuth } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 
 import './styles/components.css';
@@ -45,6 +45,11 @@ const ProfileEdit = lazy(() => import("./pages/ProfileEdit"));
 
 // ---------- Публичная страница «О сайте» ----------
 function Landing() {
+  const { role, isAuthenticated } = useAuth();
+  
+  // Для STUDENT скрываем некоторые секции
+  const isStudent = isAuthenticated && String(role || "").toUpperCase() === "STUDENT";
+  
   return (
     <>
       <Header />
@@ -52,15 +57,20 @@ function Landing() {
         <HeroSection />
         <PitchSection />
         <ProductsSection />
-        {/* TeacherInsightSection — блок с жёлтым заголовком */}
-        <TeacherInsightSection />
+        {/* TeacherInsightSection — только для не-STUDENT */}
+        {!isStudent && <TeacherInsightSection />}
         {/* HistoricalQuizSection — тест про тарихи тұлға */}
         <HistoricalQuizSection />
         {/* Анализ пользователя — вставлен между двумя секциями */}
         <UserInsightBlock />
-        <MissionSection />
-        <ScenariosSection />
-        <FinalCtaSection />
+        {/* Эти секции скрыты для STUDENT */}
+        {!isStudent && (
+          <>
+            <MissionSection />
+            <ScenariosSection />
+            <FinalCtaSection />
+          </>
+        )}
       </main>
       <Footer />
     </>

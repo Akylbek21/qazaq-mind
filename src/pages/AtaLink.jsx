@@ -10,12 +10,9 @@ import {
   _utils as ATA,
 } from "../api/atalink";
 
-/* ===================== PERSIST KEYS ===================== */
 const QUIZ_KEY = "atalink_quiz_stats_v1";
 const TAB_KEY  = "atalink_active_tab_v1";
 const ART_KEY  = "atalink_active_article_v1";
-
-/* ===================== HELPERS ===================== */
 function load(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key) || "null") ?? fallback; }
   catch { return fallback; }
@@ -25,7 +22,6 @@ function save(key, val) {
   localStorage.setItem(key, JSON.stringify(val));
 }
 
-/* YouTube → embed */
 function toYouTubeEmbed(url) {
   try {
     const u = new URL(url);
@@ -40,7 +36,6 @@ function toYouTubeEmbed(url) {
   } catch {}
   return null;
 }
-/* очень простой markdown→html (только **bold** и переносы) */
 function mdToHtml(md = "") {
   let html = String(md || "");
   html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
@@ -48,15 +43,14 @@ function mdToHtml(md = "") {
   return html;
 }
 
-/* ===================== DATA (локальные секции остаются) ===================== */
-const QUICK_TIPS = [ /* ... как у тебя было ... */ {
+const QUICK_TIPS = [{
   title: "1) Сүйіспеншілік пен қолдау",
   bullets: [
     "«Сен маған маңыздысың», «Саған сенемін» деп күн сайын айту.",
     "Іс-әрекетпен көрсету: уақыт бөлу, бірге ойнау.",
     "Баланы емес, әрекетін талқылау: «Бұл ісің дұрыс болмады».",
   ],
-}, /* остальные элементы без изменений */ ];
+}];
 
 const VIDEO_URLS = [
   "https://www.youtube.com/watch?v=BcusHhHa3DE",
@@ -65,14 +59,11 @@ const VIDEO_URLS = [
   "https://www.youtube.com/watch?v=iC1X6dGuARY",
 ];
 
-const LAWS = [ /* твои карточки законов — без изменений */ ];
+const LAWS = [];
 
-/* Локальный QUIZ — теперь только как fallback, если API недоступен */
-const LOCAL_QUIZ = [ /* твои 10 вопросов как было */ ];
+const LOCAL_QUIZ = [];
 
-/* ===================== MAIN ===================== */
 export default function AtaLink() {
-  /* -------- tabs -------- */
   const [tab, setTab] = React.useState(() => load(TAB_KEY, "tips"));
   React.useEffect(() => save(TAB_KEY, tab), [tab]);
 
@@ -82,20 +73,18 @@ export default function AtaLink() {
     exit: { opacity: 0, y: -20 }
   };
 
-  /* -------- server articles -------- */
   const [articles, setArticles] = React.useState([]);
   const [articleId, setArticleId] = React.useState(() => load(ART_KEY, null));
   const [article, setArticle] = React.useState(null);
   const [artLoading, setArtLoading] = React.useState(false);
   const [artErr, setArtErr] = React.useState("");
 
-  /* -------- server quiz -------- */
-  const [srvQuestions, setSrvQuestions] = React.useState([]); // [{id,prompt,options}]
+  const [srvQuestions, setSrvQuestions] = React.useState([]);
   const [srvLoading, setSrvLoading] = React.useState(false);
   const [srvErr, setSrvErr] = React.useState("");
 
-  const [quizStep, setQuizStep] = React.useState(0); // 0=intro, 1..N, done=N+1
-  const [answers, setAnswers] = React.useState({});  // index -> optionIndex
+  const [quizStep, setQuizStep] = React.useState(0);
+  const [answers, setAnswers] = React.useState({});
   const [quizStats, setQuizStats] = React.useState(() =>
     load(QUIZ_KEY, { attempts: 0, best: 0, last: 0 })
   );
@@ -106,12 +95,10 @@ export default function AtaLink() {
   const scoreLocal = Object.entries(answers).reduce((a, [i, v]) =>
     a + (LOCAL_QUIZ[+i]?.correct === v ? 1 : 0), 0);
 
-  /* Итоги сервера */
   const [srvSubmitting, setSrvSubmitting] = React.useState(false);
-  const [srvSummary, setSrvSummary] = React.useState(null); // {total, correct}
+  const [srvSummary, setSrvSummary] = React.useState(null);
   const [srvSubmitErr, setSrvSubmitErr] = React.useState("");
 
-  /* -------- load articles on mount -------- */
   React.useEffect(() => {
     let ignore = false;
     (async () => {
@@ -132,9 +119,8 @@ export default function AtaLink() {
       }
     })();
     return () => { ignore = true; };
-  }, []); // один раз
+  }, []);
 
-  /* -------- load selected article & questions -------- */
   React.useEffect(() => {
     let ignore = false;
     if (!articleId) { setArticle(null); setSrvQuestions([]); return; }
@@ -168,7 +154,6 @@ export default function AtaLink() {
     return () => { ignore = true; };
   }, [articleId]);
 
-  /* -------- quiz helpers -------- */
   const quizStart = () => { setQuizStep(1); setAnswers({}); setSrvSummary(null); setSrvSubmitErr(""); };
   const quizPick  = (idx, optIdx) => setAnswers(p => ({ ...p, [idx]: optIdx }));
   const quizNext  = () => {
@@ -213,7 +198,6 @@ export default function AtaLink() {
     }
   }
 
-  /* -------- videos embeds -------- */
   const embeds = VIDEO_URLS.map(toYouTubeEmbed).filter(Boolean);
 
   return (
@@ -225,93 +209,132 @@ export default function AtaLink() {
       variants={pageVariants}
     >
       <div className="container mx-auto max-w-6xl px-4 py-10">
-        <motion.div className="text-center mb-8">
-          <h1 className="text-4xl font-extrabold">
-            <span className="bg-gradient-to-r from-[#f59e0b] to-[#f97316] bg-clip-text text-transparent">
-              AtaLink
-            </span>
-          </h1>
-          <p className="mt-4 text-slate-600">
-            Ата-анамен байланыс платформасы: кеңестер, тесттер, видео материалдар және заң ақпараты
-          </p>
-        </motion.div>
-      <p className="mt-2 text-slate-600">
-        Мақалалар мен тесттер енді серверден жүктеледі. Қажет болса — локалдық режимге автоматты түрде ауысады.
-      </p>
+        <motion.h1 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="text-3xl md:text-4xl font-extrabold text-slate-900 text-center mb-2"
+        >
+          AtaLink
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-center text-lg text-[#f59e0b] font-semibold mb-8"
+        >
+          Кеңестер • Тесттер • Видеолар • Заңнама
+        </motion.p>
 
       {/* Tabs */}
-      <div className="mt-6 flex flex-wrap gap-2">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="mt-6 flex flex-wrap gap-3 justify-center"
+      >
         {[
           ["tips",   "Кеңестер"],
-          ["quiz",   "Тест (мақала)"],
+          ["quiz",   "Тест"],
           ["videos", "Видеолар"],
           ["laws",   "Заңнама"],
         ].map(([key, label]) => (
-          <button key={key} onClick={() => setTab(key)}
-            className={`px-3 py-2 rounded-xl border text-sm font-semibold ${
-              tab === key ? "bg-amber-500 text-white border-amber-500" : "border-slate-300"
-            }`}>
+          <button 
+            key={key} 
+            onClick={() => setTab(key)}
+            className={`px-5 py-2.5 rounded-xl border-2 text-sm font-bold transition-all duration-300 ${
+              tab === key 
+                ? "bg-gradient-to-r from-[#f59e0b] to-[#f97316] text-white border-[#f59e0b] shadow-lg scale-105" 
+                : "border-slate-300 hover:border-[#f59e0b]/50 hover:bg-amber-50"
+            }`}
+          >
             {label}
           </button>
         ))}
-      </div>
+      </motion.div>
 
-      {/* ============== TAB: TIPS ============== */}
+      {/* TAB: TIPS */}
       {tab === "tips" && (
-        <div className="mt-6 grid gap-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
-            <h3 className="font-bold text-slate-900">Ата-аналарға арналған кеңестер (ТОП-10)</h3>
-            <div className="mt-3 grid md:grid-cols-2 gap-3">
-              {QUICK_TIPS.map((t) => (
-                <div key={t.title} className="rounded-xl border border-slate-200 p-3">
-                  <div className="font-semibold text-slate-900">{t.title}</div>
-                  <ul className="mt-2 list-disc pl-5 text-sm text-slate-700 space-y-1">
-                    {t.bullets.map((b, i) => <li key={i}>{b}</li>)}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-8"
+        >
+          <div className="rounded-2xl border border-slate-200/70 bg-white/90 backdrop-blur-xl p-6 shadow-[0_10px_30px_rgba(16,37,66,0.08)]">
+            <h3 className="text-2xl font-extrabold text-slate-900 mb-6">Ата-аналарға арналған кеңестер</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              {QUICK_TIPS.map((t, idx) => (
+                <motion.div 
+                  key={t.title}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 + idx * 0.1 }}
+                  className="rounded-xl border-2 border-amber-200/50 bg-gradient-to-br from-amber-50/50 to-orange-50/50 p-5 hover:border-amber-300 hover:shadow-lg transition-all duration-300"
+                >
+                  <div className="font-bold text-lg text-slate-900 mb-3">{t.title}</div>
+                  <ul className="space-y-2 text-sm text-slate-700">
+                    {t.bullets.map((b, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-amber-600 mt-0.5">•</span>
+                        <span>{b}</span>
+                      </li>
+                    ))}
                   </ul>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
-      {/* ============== TAB: QUIZ (SERVER-FIRST) ============== */}
+      {/* TAB: QUIZ */}
       {tab === "quiz" && (
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
-          <h3 className="font-bold text-slate-900">Тест: мақаланы таңдаңыз да, сұрақтарға жауап беріңіз</h3>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-8 rounded-2xl border border-slate-200/70 bg-white/90 backdrop-blur-xl p-6 shadow-[0_10px_30px_rgba(16,37,66,0.08)]"
+        >
+          <h3 className="text-2xl font-extrabold text-slate-900 mb-6">Тест</h3>
 
           {/* Выбор статьи */}
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 mb-6">
             <div>
-              <label className="block text-sm text-slate-600 mb-1">Мақала</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Мақала таңдау</label>
               <select
                 value={articleId ?? ""}
                 onChange={(e) => { const v = e.target.value ? Number(e.target.value) : null; setArticleId(v); save(ART_KEY, v); setQuizStep(0); setAnswers({}); setSrvSummary(null); }}
-                className="w-full rounded-xl border px-3 py-2"
+                className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 outline-none focus:border-[#f59e0b] focus:ring-2 focus:ring-[#f59e0b]/20 transition-all duration-300"
               >
-                <option value="">— таңдалмаған —</option>
+                <option value="">— Таңдаңыз —</option>
                 {articles.map((a) => (
                   <option key={a.id} value={a.id}>{a.title}</option>
                 ))}
               </select>
-              {artLoading && <div className="mt-1 text-sm text-slate-500">Мақалалар жүктелуде…</div>}
-              {artErr && <div className="mt-1 text-sm text-rose-600">{artErr}</div>}
+              {artLoading && (
+                <div className="mt-2 flex items-center gap-2 text-slate-600 text-sm">
+                  <div className="animate-spin h-4 w-4 border-2 border-[#f59e0b] border-t-transparent rounded-full"></div>
+                  <span>Жүктелуде…</span>
+                </div>
+              )}
+              {artErr && <div className="mt-2 text-sm text-rose-600 bg-rose-50 rounded-lg p-2">{artErr}</div>}
             </div>
 
             {/* Короткая сводка статьи */}
-            <div className="rounded-xl border border-slate-200 p-3">
-              <div className="text-sm text-slate-600">Қысқаша</div>
-              <div className="mt-1 text-slate-900 font-medium">{article?.title || "—"}</div>
-              {article?.summary && <div className="mt-1 text-sm text-slate-700">{article.summary}</div>}
+            <div className="rounded-xl border-2 border-amber-200/50 bg-gradient-to-br from-amber-50/50 to-orange-50/50 p-4">
+              <div className="text-xs font-bold text-slate-500 mb-2">ҚЫСҚАША</div>
+              <div className="text-slate-900 font-bold text-lg">{article?.title || "—"}</div>
+              {article?.summary && <div className="mt-2 text-sm text-slate-700">{article.summary}</div>}
             </div>
           </div>
 
-          {/* Контент статьи (markdown) */}
+          {/* Контент статьи */}
           {article?.contentMarkdown && (
-            <div className="mt-4 rounded-xl border border-slate-200 p-3 bg-white">
-              <div className="text-sm text-slate-600 mb-1">Мазмұны</div>
+            <div className="mb-6 rounded-xl border-2 border-slate-200 bg-white p-5">
+              <div className="text-sm font-bold text-slate-600 mb-3">МАЗМҰНЫ</div>
               <div
-                className="prose prose-sm max-w-none text-slate-800"
+                className="prose prose-sm max-w-none text-slate-800 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: mdToHtml(article.contentMarkdown) }}
               />
             </div>
@@ -319,133 +342,269 @@ export default function AtaLink() {
 
           {/* Intro */}
           {quizStep === 0 && (
-            <div className="mt-4">
-              <div className="text-slate-600 text-sm">
-                {isServerMode
-                  ? "Мақаланы таңдағаннан кейін «Тесті бастау» батырмасын басыңыз."
-                  : "Сервер қолжетімсіз — локалдық тестке ауыстық."}
+            <div className="space-y-6">
+              {isServerMode ? (
+                <div className="text-slate-700 text-center py-4">
+                  Мақаланы таңдағаннан кейін тестті бастаңыз
+                </div>
+              ) : (
+                <div className="text-amber-700 bg-amber-50 rounded-xl p-4 text-center">
+                  Сервер қолжетімсіз — локалдық тестке ауыстық
+                </div>
+              )}
+              
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div className="rounded-xl border-2 border-slate-200 bg-white p-4 text-center">
+                  <div className="text-xs text-slate-500 mb-1">Соңғы ұпай</div>
+                  <div className="text-2xl font-bold text-slate-900">{quizStats.last ?? 0} / {LOCAL_QUIZ.length}</div>
+                </div>
+                <div className="rounded-xl border-2 border-amber-200 bg-gradient-to-br from-amber-50/50 to-orange-50/50 p-4 text-center">
+                  <div className="text-xs text-amber-600 font-bold mb-1">Ең үздік</div>
+                  <div className="text-2xl font-bold text-amber-600">{quizStats.best ?? 0} / {LOCAL_QUIZ.length}</div>
+                </div>
+                <div className="rounded-xl border-2 border-slate-200 bg-white p-4 text-center">
+                  <div className="text-xs text-slate-500 mb-1">Талпыныс саны</div>
+                  <div className="text-2xl font-bold text-slate-900">{quizStats.attempts ?? 0}</div>
+                </div>
               </div>
-              <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-600">
-                <div className="rounded-xl border p-3">Соңғы ұпай: <b>{quizStats.last ?? 0}</b> / {LOCAL_QUIZ.length}</div>
-                <div className="rounded-xl border p-3">Ең үздік нәтиже: <b>{quizStats.best ?? 0}</b> / {LOCAL_QUIZ.length}</div>
-                <div className="rounded-xl border p-3">Талпыныс саны: <b>{quizStats.attempts ?? 0}</b></div>
+              
+              <div className="flex justify-center">
+                <button
+                  onClick={quizStart}
+                  disabled={isServerMode && (!articleId || srvLoading || srvQuestions.length === 0)}
+                  className="group/btn relative px-8 py-4 rounded-xl bg-gradient-to-r from-[#f59e0b] via-[#f97316] to-[#f59e0b] text-white font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    🚀 Тесті бастау
+                    <span className="group-hover/btn:translate-x-1 transition-transform duration-300">→</span>
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#f97316] via-[#f59e0b] to-[#f97316] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                </button>
               </div>
-              <button
-                onClick={quizStart}
-                disabled={isServerMode && (!articleId || srvLoading || srvQuestions.length === 0)}
-                className="mt-3 px-4 py-2 rounded-xl bg-amber-500 text-white font-semibold disabled:opacity-40"
-              >
-                Тесті бастау
-              </button>
-              {srvErr && <div className="mt-2 text-sm text-rose-600">{srvErr}</div>}
+              
+              {srvErr && <div className="text-sm text-rose-600 bg-rose-50 rounded-xl p-3">{srvErr}</div>}
             </div>
           )}
 
           {/* Вопросы */}
           {quizStep > 0 && quizStep <= total && (
-            <div className="mt-4">
-              <div className="text-sm text-slate-600">Сұрақ {quizStep}/{total}</div>
-              <div className="mt-2 font-semibold text-slate-900">
+            <motion.div 
+              key={quizStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold text-slate-700">Сұрақ {quizStep} / {total}</div>
+                <div className="w-32 h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(quizStep / total) * 100}%` }}
+                    className="h-2 bg-gradient-to-r from-[#f59e0b] to-[#f97316]"
+                  />
+                </div>
+              </div>
+              
+              <div className="text-xl font-bold text-slate-900 leading-relaxed">
                 {isServerMode ? (srvQuestions[quizStep - 1]?.prompt || "") : (LOCAL_QUIZ[quizStep - 1].q)}
               </div>
-              <div className="mt-3 grid gap-2">
+              
+              <div className="grid gap-3">
                 {(isServerMode ? (srvQuestions[quizStep - 1]?.options || []) : LOCAL_QUIZ[quizStep - 1].options).map((opt, i) => {
                   const checked = answers[quizStep - 1] === i;
                   return (
-                    <button
+                    <motion.button
                       key={i}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => quizPick(quizStep - 1, i)}
-                      className={`text-left rounded-xl border px-4 py-3 transition ${
-                        checked ? "border-amber-500 bg-amber-50" : "border-slate-200 hover:bg-slate-50"
+                      className={`group text-left rounded-xl border-2 px-5 py-4 transition-all duration-300 ${
+                        checked 
+                          ? "border-[#f59e0b] bg-gradient-to-r from-amber-50 to-orange-50 shadow-md" 
+                          : "border-slate-200 hover:border-[#f59e0b]/50 hover:bg-slate-50"
                       }`}
                     >
-                      {isServerMode ? opt : opt}
-                    </button>
+                      <div className="flex items-center gap-3">
+                        <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold transition-all duration-300 ${
+                          checked 
+                            ? "bg-gradient-to-r from-[#f59e0b] to-[#f97316] text-white shadow-lg scale-110" 
+                            : "bg-slate-200 text-slate-700 group-hover:bg-slate-300"
+                        }`}>
+                          {i + 1}
+                        </span>
+                        <span className="flex-1 text-slate-800 font-medium">{opt}</span>
+                        {checked && (
+                          <motion.span 
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="text-[#f59e0b] text-xl"
+                          >
+                            ✓
+                          </motion.span>
+                        )}
+                      </div>
+                    </motion.button>
                   );
                 })}
               </div>
 
-              <div className="mt-4 flex gap-3">
+              <div className="flex justify-between items-center gap-4">
                 <button
                   onClick={() => setQuizStep((s) => Math.max(1, s - 1))}
-                  className="px-4 py-2 rounded-xl border border-slate-300 font-semibold"
+                  disabled={quizStep === 1}
+                  className="px-5 py-2.5 rounded-xl border-2 border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  Артқа
+                  ⟵ Артқа
                 </button>
                 <button
                   onClick={quizNext}
                   disabled={!(quizStep - 1 in answers)}
-                  className="px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold disabled:opacity-40"
+                  className="group/btn relative px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#f59e0b] via-[#f97316] to-[#f59e0b] text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden"
                 >
-                  {quizStep < total ? "Келесі" : "Нәтижені көру"}
+                  <span className="relative z-10 flex items-center gap-2">
+                    {quizStep < total ? "Келесі" : "Нәтижені көру"}
+                    <span className="group-hover/btn:translate-x-1 transition-transform duration-300">→</span>
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#f97316] via-[#f59e0b] to-[#f97316] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
                 </button>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Результат */}
           {quizStep === total + 1 && (
-            <div className="mt-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="space-y-6"
+            >
+              <div className="text-center">
+                <div className="text-6xl mb-4">🎯</div>
+                <h3 className="text-3xl font-extrabold text-slate-900 mb-4">Нәтиже</h3>
+              </div>
+
               {isServerMode ? (
                 <>
-                  {srvSubmitting && <div className="text-sm text-slate-600">Серверден тексеру…</div>}
-                  {srvSubmitErr && <div className="text-sm text-rose-600">{srvSubmitErr}</div>}
-                  <div className="text-xl font-bold text-slate-900">
-                    Нәтиже: {srvSummary?.correct ?? 0} / {srvSummary?.total ?? total}
-                  </div>
+                  {srvSubmitting && (
+                    <div className="flex items-center justify-center gap-2 text-slate-600">
+                      <div className="animate-spin h-5 w-5 border-2 border-[#f59e0b] border-t-transparent rounded-full"></div>
+                      <span>Серверден тексеру…</span>
+                    </div>
+                  )}
+                  {srvSubmitErr && <div className="text-sm text-rose-600 bg-rose-50 rounded-xl p-3">{srvSubmitErr}</div>}
+                  {!srvSubmitting && (
+                    <div className="text-center">
+                      <div className="inline-block bg-gradient-to-r from-[#f59e0b] to-[#f97316] rounded-2xl px-8 py-4 shadow-lg">
+                        <p className="text-white text-sm font-medium mb-1">Ұпай</p>
+                        <p className="text-white text-4xl font-extrabold">
+                          {srvSummary?.correct ?? 0} / {srvSummary?.total ?? total}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
-                  <div className="text-xl font-bold text-slate-900">
-                    Нәтиже: {scoreLocal} / {LOCAL_QUIZ.length}
+                  <div className="text-center">
+                    <div className="inline-block bg-gradient-to-r from-[#f59e0b] to-[#f97316] rounded-2xl px-8 py-4 shadow-lg">
+                      <p className="text-white text-sm font-medium mb-1">Ұпай</p>
+                      <p className="text-white text-4xl font-extrabold">
+                        {scoreLocal} / {LOCAL_QUIZ.length}
+                      </p>
+                    </div>
                   </div>
-                  <p className="mt-1 text-slate-700">
-                    {scoreLocal <= 4
-                      ? "Базалық түсініктер қалыптасқан. Кеңестерді қарап шығыңыз."
-                      : scoreLocal <= 8
-                      ? "Жақсы! Тыңдау мен сенімге мән беріңіз."
-                      : "Керемет! Үлгілік тәрбие — осы қарқынмен жалғастырыңыз."}
-                  </p>
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-5 border-2 border-amber-200">
+                    <p className="text-slate-800 font-semibold text-center">
+                      {scoreLocal <= 4
+                        ? "Базалық түсініктер қалыптасқан. Кеңестерді қарап шығыңыз."
+                        : scoreLocal <= 8
+                        ? "Жақсы! Тыңдау мен сенімге мән беріңіз."
+                        : "Керемет! Үлгілік тәрбие — осы қарқынмен жалғастырыңыз."}
+                    </p>
+                  </div>
                 </>
               )}
 
-              {/* Review для локального (для сервера ответа «правильный» бэк хранит сам) */}
+              {/* Review для локального */}
               {!isServerMode && (
-                <div className="mt-4 grid gap-3">
+                <div className="space-y-3">
                   {LOCAL_QUIZ.map((qq, idx) => {
                     const your = answers[idx];
                     const ok = your === qq.correct;
                     return (
-                      <div key={idx} className={`rounded-xl border p-3 ${ok ? "border-emerald-200 bg-emerald-50/60" : "border-rose-200 bg-rose-50/60"}`}>
-                        <div className="font-medium text-slate-900">{qq.q}</div>
-                        <div className="mt-1 text-sm">
-                          Таңдалған: <b className={ok ? "text-emerald-700" : "text-rose-700"}>
-                            {your != null ? qq.options[your] : "—"}
-                          </b>{" "}
-                          | Дұрыс: <b className="text-emerald-700">{qq.options[qq.correct]}</b>
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className={`rounded-xl border-2 p-4 ${
+                          ok 
+                            ? "border-emerald-300 bg-gradient-to-br from-emerald-50 to-green-50" 
+                            : "border-rose-300 bg-gradient-to-br from-rose-50 to-red-50"
+                        }`}
+                      >
+                        <div className="font-bold text-slate-900 mb-2">{qq.q}</div>
+                        <div className="text-sm space-y-1">
+                          <div>
+                            Таңдалған: <b className={ok ? "text-emerald-700" : "text-rose-700"}>
+                              {your != null ? qq.options[your] : "—"}
+                            </b>
+                          </div>
+                          <div>
+                            Дұрыс: <b className="text-emerald-700">{qq.options[qq.correct]}</b>
+                          </div>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
               )}
 
-              <div className="mt-4 flex gap-3">
-                <button onClick={quizStart} className="px-4 py-2 rounded-xl bg-amber-500 text-white font-semibold">Қайта өту</button>
-                <button onClick={quizRestart} className="px-4 py-2 rounded-xl border border-slate-300 font-semibold">Басты экран</button>
+              <div className="flex gap-3 justify-center">
+                <button 
+                  onClick={quizStart} 
+                  className="group/btn relative px-6 py-3 rounded-xl bg-gradient-to-r from-[#f59e0b] via-[#f97316] to-[#f59e0b] text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    🔄 Қайта өту
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#f97316] via-[#f59e0b] to-[#f97316] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                </button>
+                <button 
+                  onClick={quizRestart} 
+                  className="px-6 py-3 rounded-xl border-2 border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-300"
+                >
+                  Басты экран
+                </button>
               </div>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       )}
 
-      {/* ============== TAB: VIDEOS ============== */}
+      {/* TAB: VIDEOS */}
       {tab === "videos" && (
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
-          <h3 className="font-bold text-slate-900">Бала тәрбиесі туралы видеолар</h3>
-          <div className="mt-3 grid md:grid-cols-2 gap-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-8 rounded-2xl border border-slate-200/70 bg-white/90 backdrop-blur-xl p-6 shadow-[0_10px_30px_rgba(16,37,66,0.08)]"
+        >
+          <h3 className="text-2xl font-extrabold text-slate-900 mb-6">Бала тәрбиесі туралы видеолар</h3>
+          <div className="grid md:grid-cols-2 gap-6">
             {embeds.map((src, i) => (
-              <div key={i} className="rounded-xl overflow-hidden border border-slate-200 bg-black/5 aspect-video">
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 + i * 0.1 }}
+                className="rounded-xl overflow-hidden border-2 border-slate-200 bg-black/5 aspect-video shadow-lg hover:shadow-xl transition-all duration-300"
+              >
                 <iframe
                   title={`video-${i}`}
                   src={src}
@@ -453,41 +612,64 @@ export default function AtaLink() {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
-              </div>
+              </motion.div>
             ))}
           </div>
-          <div className="mt-3 text-xs text-slate-500">Ескерту: Видеолар YouTube платформасынан ендірілді.</div>
-        </div>
+          <div className="mt-4 text-xs text-slate-500 bg-slate-50 rounded-lg px-4 py-2 text-center">
+            💡 Ескерту: Видеолар YouTube платформасынан ендірілді
+          </div>
+        </motion.div>
       )}
 
-      {/* ============== TAB: LAWS ============== */}
+      {/* TAB: LAWS */}
       {tab === "laws" && (
-        <div className="mt-6 grid gap-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
-            <h3 className="font-bold text-slate-900">Ата-ана міндеттері туралы заңнамалар (қысқаша)</h3>
-            <p className="mt-1 text-sm text-slate-600">
-              Бұл бөлім ақпараттық сипатта. Нақты жағдайға қатысты ресми дереккөздер мен маманға жүгініңіз.
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-8 space-y-6"
+        >
+          <div className="rounded-2xl border border-slate-200/70 bg-white/90 backdrop-blur-xl p-6 shadow-[0_10px_30px_rgba(16,37,66,0.08)]">
+            <h3 className="text-2xl font-extrabold text-slate-900 mb-4">Ата-ана міндеттері туралы заңнамалар</h3>
+            <p className="text-sm text-slate-600 mb-6 bg-slate-50 rounded-xl px-4 py-3">
+              💡 Бұл бөлім ақпараттық сипатта. Нақты жағдайға қатысты ресми дереккөздер мен маманға жүгініңіз.
             </p>
 
-            <div className="mt-3 space-y-3">
+            <div className="space-y-3">
               {LAWS.map((l, idx) => (
-                <details key={idx} className="rounded-xl border border-slate-200 p-3">
-                  <summary className="cursor-pointer font-semibold text-slate-900">{l.title}</summary>
-                  <ul className="mt-2 list-disc pl-5 text-sm text-slate-700 space-y-1">
-                    {l.points.map((p, i) => <li key={i}>{p}</li>)}
-                  </ul>
-                </details>
+                <motion.details
+                  key={idx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 + idx * 0.05 }}
+                  className="group rounded-xl border-2 border-slate-200 bg-white p-4 hover:border-amber-300 hover:shadow-md transition-all duration-300"
+                >
+                  <summary className="cursor-pointer font-bold text-slate-900 text-lg list-none flex items-center justify-between">
+                    <span>{l.title}</span>
+                    <span className="text-amber-600 text-xl group-open:rotate-180 transition-transform duration-300">▼</span>
+                  </summary>
+                  <div className="mt-4 pt-4 border-t border-slate-200">
+                    <ul className="space-y-2 text-sm text-slate-700">
+                      {l.points.map((p, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-amber-600 mt-0.5">•</span>
+                          <span>{p}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.details>
               ))}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
-            <h4 className="font-semibold text-slate-900">Ескерту</h4>
-            <p className="mt-1 text-sm text-slate-600">
+          <div className="rounded-2xl border border-amber-200/50 bg-gradient-to-br from-amber-50/50 to-orange-50/50 p-5">
+            <h4 className="font-bold text-slate-900 mb-2">Ескерту</h4>
+            <p className="text-sm text-slate-700">
               Айыппұл мөлшерлері АЕК-ке (айлық есептік көрсеткіш) байланған. АЕК жыл сайын өзгеруі мүмкін.
             </p>
           </div>
-        </div>
+        </motion.div>
       )}
       </div>
     </motion.div>

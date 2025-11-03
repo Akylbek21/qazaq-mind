@@ -209,40 +209,75 @@ export default function ThinkHub() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {books.map((b) => (
-              <div
+            {books.map((b, idx) => (
+              <motion.div
                 key={b.id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: idx * 0.1 }}
+                whileHover={{ y: -8, scale: 1.02 }}
+                className="group relative rounded-2xl border border-slate-200/70 bg-white/90 backdrop-blur-xl p-6 shadow-[0_10px_30px_rgba(16,37,66,0.08)] hover:shadow-[0_16px_40px_rgba(16,37,66,0.15)] transition-all duration-300 overflow-hidden"
               >
-                <div className="flex items-start gap-3">
+                {/* Декоративный градиент при hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#1F7A8C]/5 via-transparent to-[#0ea5a5]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                <div className="relative">
+                  {/* Обложка книги */}
+                  <div className="mb-4 flex justify-center">
                     {b.imageUrl ? (
-                      <img src={b.imageUrl} alt={b.title} className="w-12 h-12 rounded-xl object-cover border" />
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#1F7A8C]/20 to-[#0ea5a5]/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+                        <img 
+                          src={b.imageUrl} 
+                          alt={b.title} 
+                          className="relative w-full max-w-[200px] h-[280px] rounded-xl object-cover border-2 border-slate-200 shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:scale-105" 
+                        />
+                      </div>
                     ) : (
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-amber-100 to-orange-100 flex items-center justify-center text-xl">
+                      <div className="w-full max-w-[200px] h-[280px] rounded-xl bg-gradient-to-br from-amber-100 via-orange-100 to-amber-200 flex items-center justify-center text-6xl shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:scale-105 border-2 border-amber-200">
                         📘
                       </div>
                     )}
-                    <div className="min-w-0">
-                      <h3 className="text-lg font-bold text-slate-900">
-                        {b.title}
-                      </h3>
-                      <p className="text-xs text-slate-500">{b.author}</p>
-                    </div>
                   </div>
-                <div className="mt-4">
-                  <button
-                    onClick={() => startBook(b)}
-                    className="rounded-xl bg-sky-600 text-white px-4 py-2 text-sm font-semibold"
-                  >
-                    Тестті бастау
-                  </button>
+
+                  {/* Информация о книге */}
+                  <div className="text-center mb-5">
+                    <h3 className="text-xl font-extrabold text-slate-900 mb-2 leading-tight group-hover:text-[#1F7A8C] transition-colors duration-300">
+                      {b.title}
+                    </h3>
+                    <p className="text-sm text-slate-600 font-medium">{b.author}</p>
+                  </div>
+
+                  {/* Кнопка */}
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => startBook(b)}
+                      className="group/btn relative rounded-xl bg-gradient-to-r from-[#1F7A8C] via-[#1aa6b5] to-[#0ea5a5] text-white px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden"
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        <span>Тестті бастау</span>
+                        <span className="group-hover/btn:translate-x-1 transition-transform duration-300">→</span>
+                      </span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#0ea5a5] via-[#1aa6b5] to-[#1F7A8C] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                    </button>
+                  </div>
                 </div>
-              </div>
+
+                {/* Декоративные точки */}
+                <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-[#1F7A8C]/20 group-hover:bg-[#1F7A8C]/40 transition-colors duration-300" />
+                <div className="absolute top-4 right-8 w-1.5 h-1.5 rounded-full bg-[#0ea5a5]/20 group-hover:bg-[#0ea5a5]/40 transition-colors duration-300" />
+              </motion.div>
             ))}
             {!loadingBooks && !booksErr && books.length === 0 && (
-              <div className="rounded-xl border p-4 text-slate-500">
-                Кітаптар жоқ.
-              </div>
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="col-span-full rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/50 p-12 text-center"
+              >
+                <div className="text-6xl mb-4">📚</div>
+                <p className="text-lg font-semibold text-slate-700 mb-2">Кітаптар жоқ</p>
+                <p className="text-sm text-slate-500">Кітаптар тізімі бос</p>
+              </motion.div>
             )}
           </div>
         </div>
