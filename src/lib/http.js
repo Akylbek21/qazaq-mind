@@ -11,14 +11,14 @@ const DEFAULT_TIMEOUT = 0; // Timeout жоқ (шексіз күту)
 
 // Источники baseURL, в порядке приоритета
 // В dev режиме используем относительный путь (через Vite proxy)
-// В production - прямой URL к backend
+// В production - через nginx proxy (/api) или прямой URL из env
 const rawBase = import.meta.env.DEV
   ? "/api" // Dev: через Vite proxy (избегаем CORS)
   : (import.meta.env.VITE_QAZAQMIND_SERVICE &&
       String(import.meta.env.VITE_QAZAQMIND_SERVICE).trim()) ||
     (import.meta.env.VITE_QM_API_URL &&
       String(import.meta.env.VITE_QM_API_URL).trim()) ||
-    "http://85.202.193.138:8087"; // Production: прямой URL
+    "/api"; // Production: через nginx proxy (по умолчанию)
 
 export const API_BASE = trim(rawBase);
 
