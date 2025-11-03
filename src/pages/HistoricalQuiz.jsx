@@ -227,6 +227,9 @@ export default function HistoricalQuiz() {
                   >
                     ✨ {personalities[result.personality].name.split(" ")[0]}мен сөйлесу
                   </button>
+                  <button onClick={() => navigate("/")} className="btn btn-tertiary">
+                    ⟵ Басты бетке оралу
+                  </button>
                 </div>
               </div>
             </motion.div>

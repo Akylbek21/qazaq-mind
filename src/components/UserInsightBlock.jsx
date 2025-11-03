@@ -26,12 +26,29 @@ const initialInsight = {
 };
 
 export default function UserInsightBlock() {
-  const { username } = useAuth();
+  const { username, role, isAuthenticated } = useAuth();
   const [insight, setInsight] = React.useState(initialInsight);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
 
+  // Показываем блок только для STUDENT
+  const isStudent = isAuthenticated && String(role || "").toUpperCase() === "STUDENT";
+  
+  // Если не студент, не загружаем данные
+  React.useEffect(() => {
+    if (!isStudent) {
+      setLoading(false);
+      return;
+    }
+  }, [isStudent]);
+
   const load = React.useCallback(async () => {
+    // Не загружаем данные если не студент
+    if (!isStudent) {
+      setLoading(false);
+      return;
+    }
+    
     setError("");
     setLoading(true);
     console.log("🔄 Loading dashboard data...");
@@ -125,6 +142,11 @@ export default function UserInsightBlock() {
   }, []);
 
   React.useEffect(() => {
+    // Не загружаем данные если не студент
+    if (!isStudent) {
+      return;
+    }
+    
     let alive = true;
     (async () => {
       if (!alive) return;
@@ -133,7 +155,7 @@ export default function UserInsightBlock() {
     return () => {
       alive = false;
     };
-  }, [load]);
+  }, [load, isStudent]);
 
   const overall = React.useMemo(() => {
     const arr = [
@@ -157,6 +179,11 @@ export default function UserInsightBlock() {
     ];
     return items.sort((a, b) => a.value - b.value)[0];
   }, [insight]);
+
+  // Не рендерим компонент если не студент
+  if (!isStudent) {
+    return null;
+  }
 
   return (
     <motion.div 

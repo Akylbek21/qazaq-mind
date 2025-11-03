@@ -40,7 +40,13 @@ export async function fetchAtaArticleQuestions(articleId, opts = {}) {
   return (Array.isArray(raw) ? raw : []).map((q) => ({
     id: q.id,
     prompt: q.prompt ?? "",
-    options: [q.optionA, q.optionB, q.optionC, q.optionD].filter(Boolean),
+    imageUrl: q.imageUrl ?? null,
+    options: [
+      q.optionA ?? "",
+      q.optionB ?? "",
+      q.optionC ?? "",
+      q.optionD ?? "",
+    ].filter(Boolean),
     correctLetter: q.correct ?? null, // обычно бэк не должен отдавать, но у тебя есть — игнорим при подсчёте
     article: q.article,
   }));

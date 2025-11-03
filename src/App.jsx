@@ -8,6 +8,8 @@ import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 import './styles/components.css';
 
@@ -30,7 +32,6 @@ const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 
 const StudentHome = lazy(() => import("./pages/StudentHome"));
-const TeacherHome = lazy(() => import("./pages/TeacherHome"));
 const ParentHome = lazy(() => import("./pages/ParentHome"));
 
 const RealTalkTime = lazy(() => import("./pages/RealTalkTime"));
@@ -42,6 +43,7 @@ const ThinkHub = lazy(() => import("./pages/ThinkHub"));
 const LifeCharge = lazy(() => import("./pages/LifeCharge"));
 const AtaLink = lazy(() => import("./pages/AtaLink"));
 const ProfileEdit = lazy(() => import("./pages/ProfileEdit"));
+const StudentInsights = lazy(() => import("./pages/StudentInsights"));
 
 // ---------- Публичная страница «О сайте» ----------
 function Landing() {
@@ -49,6 +51,7 @@ function Landing() {
   
   // Для STUDENT скрываем некоторые секции
   const isStudent = isAuthenticated && String(role || "").toUpperCase() === "STUDENT";
+  const isTeacher = isAuthenticated && String(role || "").toUpperCase() === "TEACHER";
   
   return (
     <>
@@ -61,8 +64,38 @@ function Landing() {
         {!isStudent && <TeacherInsightSection />}
         {/* HistoricalQuizSection — тест про тарихи тұлға */}
         <HistoricalQuizSection />
-        {/* Анализ пользователя — вставлен между двумя секциями */}
-        <UserInsightBlock />
+        
+        {/* Секция анализа учеников (только для учителей) */}
+        {isTeacher && (
+          <div className="py-12 bg-gradient-to-b from-slate-50 to-white">
+            <div className="container mx-auto max-w-4xl text-center px-4">
+              <motion.h2
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.6 }}
+                transition={{ duration: 0.5 }}
+                className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4"
+              >
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#7c3aed] via-[#8b5cf6] to-[#a78bfa]">
+                  Оқушыларды талдау
+                </span>
+              </motion.h2>
+              <div className="mx-auto mt-4 h-[3px] w-24 rounded-full bg-gradient-to-r from-[#7c3aed] to-[#a78bfa]" />
+              <p className="max-w-2xl mx-auto text-lg text-slate-600 mt-6 mb-8">
+                Барлық оқушылардың IQ, EQ, SQ, PQ көрсеткіштері мен детальды аналитикасын көріңіз.
+              </p>
+              <Link 
+                to="/student-insights" 
+                className="inline-flex items-center justify-center rounded-xl px-8 py-4 bg-gradient-to-r from-[#7c3aed] via-[#8b5cf6] to-[#a78bfa] text-white font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+              >
+                Анализге өту
+              </Link>
+            </div>
+          </div>
+        )}
+        
+        {/* Анализ пользователя — только для STUDENT */}
+        {isStudent && <UserInsightBlock />}
         {/* Эти секции скрыты для STUDENT */}
         {!isStudent && (
           <>
@@ -124,14 +157,6 @@ export default function App() {
             element={
               <ProtectedRoute allow={["student"]}>
                 <StudentHome />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/teacher"
-            element={
-              <ProtectedRoute allow={["teacher"]}>
-                <TeacherHome />
               </ProtectedRoute>
             }
           />
@@ -200,6 +225,14 @@ export default function App() {
             element={
               <ProtectedRoute allow={["teacher"]}>
                 <TeacherConsole />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student-insights"
+            element={
+              <ProtectedRoute allow={["teacher"]}>
+                <StudentInsights />
               </ProtectedRoute>
             }
           />
