@@ -114,7 +114,7 @@ export function AuthProvider({ children }) {
   // Если бэк вернет token, залогиним сразу; если нет — просто вернем data
   const register = async ({ username, password, role = "STUDENT" }) => {
     const { data } = await http.post(
-      "/auth/register",
+      "/api/auth/register",
       { username, password, role },
       { headers: { "X-Skip-Auth-Redirect": "1" } }
     );
@@ -126,7 +126,7 @@ export function AuthProvider({ children }) {
   // Логин → POST /api/auth/login (ожидаем token в ответе)
   const login = async ({ username, password }) => {
     const { data } = await http.post(
-      "/auth/login",
+      "/api/auth/login",
       { username, password },
       { headers: { "X-Skip-Auth-Redirect": "1" } }
     );
