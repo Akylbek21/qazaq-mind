@@ -6,19 +6,26 @@ import axios from "axios";
 // Обрезаем хвостовые слэши
 const trim = (s) => (s || "").replace(/\/+$/, "");
 
+// Timeout для всех запросов (0 = без таймаута)
+const DEFAULT_TIMEOUT = 0; // Timeout жоқ (шексіз күту)
+
 // Источники baseURL, в порядке приоритета
-const rawBase =
-  (import.meta.env.VITE_QAZAQMIND_SERVICE &&
-    String(import.meta.env.VITE_QAZAQMIND_SERVICE).trim()) ||
-  (import.meta.env.VITE_QM_API_URL &&
-    String(import.meta.env.VITE_QM_API_URL).trim()) ||
-  "/api";
+// В dev режиме используем относительный путь (через Vite proxy)
+// В production - прямой URL к backend
+const rawBase = import.meta.env.DEV
+  ? "/api" // Dev: через Vite proxy (избегаем CORS)
+  : (import.meta.env.VITE_QAZAQMIND_SERVICE &&
+      String(import.meta.env.VITE_QAZAQMIND_SERVICE).trim()) ||
+    (import.meta.env.VITE_QM_API_URL &&
+      String(import.meta.env.VITE_QM_API_URL).trim()) ||
+    "http://85.202.193.138:8087"; // Production: прямой URL
 
 export const API_BASE = trim(rawBase);
 
 if (import.meta.env.DEV) {
   // eslint-disable-next-line no-console
   console.info("[HTTP] baseURL =", API_BASE);
+  console.info("[HTTP] timeout =", DEFAULT_TIMEOUT === 0 ? "DISABLED (шексіз күту)" : DEFAULT_TIMEOUT);
 }
 
 // Токен из известных мест
@@ -41,8 +48,6 @@ export function setAuthToken(token) {
 }
 
 /* ------------------------------- Инстансы ------------------------------- */
-
-const DEFAULT_TIMEOUT = Number(import.meta.env.VITE_HTTP_TIMEOUT_MS) || 15000;
 
 const commonHeaders = {
   Accept: "application/json",

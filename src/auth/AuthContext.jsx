@@ -158,6 +158,7 @@ export function AuthProvider({ children }) {
       register,
       login,
       logout,
+      fetchProfile, // Экспорт для обновления профиля
       http,
     }),
     [token, role, username]

@@ -21,7 +21,9 @@ import TeacherInsightSection from "./components/TeacherInsightSection";
 import MissionSection from "./components/MissionSection";
 import ScenariosSection from "./components/ScenariosSection";
 import FinalCtaSection from "./components/FinalCtaSection";
+
 import Footer from "./components/Footer";
+import UserInsightBlock from "./components/UserInsightBlock";
 
 // --- Страницы (ленивые импорты) ---
 const Login = lazy(() => import("./pages/Login"));
@@ -39,6 +41,7 @@ const LitQuiz = lazy(() => import("./pages/LitQuiz"));
 const ThinkHub = lazy(() => import("./pages/ThinkHub"));
 const LifeCharge = lazy(() => import("./pages/LifeCharge"));
 const AtaLink = lazy(() => import("./pages/AtaLink"));
+const ProfileEdit = lazy(() => import("./pages/ProfileEdit"));
 
 // ---------- Публичная страница «О сайте» ----------
 function Landing() {
@@ -49,8 +52,12 @@ function Landing() {
         <HeroSection />
         <PitchSection />
         <ProductsSection />
+        {/* TeacherInsightSection — блок с жёлтым заголовком */}
         <TeacherInsightSection />
+        {/* HistoricalQuizSection — тест про тарихи тұлға */}
         <HistoricalQuizSection />
+        {/* Анализ пользователя — вставлен между двумя секциями */}
+        <UserInsightBlock />
         <MissionSection />
         <ScenariosSection />
         <FinalCtaSection />
@@ -183,6 +190,16 @@ export default function App() {
             element={
               <ProtectedRoute allow={["teacher"]}>
                 <TeacherConsole />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Profile Edit - для всех авторизованных пользователей */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfileEdit />
               </ProtectedRoute>
             }
           />

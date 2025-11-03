@@ -94,7 +94,7 @@ export default function ThinkHub() {
     }
   };
 
-  // Отправка ответа (сразу при выборе)
+  // Сохранение ответа (без отправки на сервер)
   const onChoose = async (qIndex, choiceIndex) => {
     if (!questions[qIndex]) return;
     const q = questions[qIndex];
@@ -103,21 +103,6 @@ export default function ThinkHub() {
 
     // локально фиксируем выбор
     setAnswers((prev) => ({ ...prev, [q.id]: letter }));
-
-    setSubmitting(true);
-    try {
-      const res = await submitSQAnswer({ questionId: q.id, chosen: letter });
-      const correct = !!res?.correct; // сервер – источник истины
-      setResults((prev) => ({ ...prev, [q.id]: { correct } }));
-    } catch (e) {
-      // Если ошибка сети/403 — покажем как неправильный и сохраним текст ошибки
-      setResults((prev) => ({
-        ...prev,
-        [q.id]: { correct: false, error: e?.message },
-      }));
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   // Горячие клавиши: 1..4 — выбор, Enter — далее
@@ -144,10 +129,24 @@ export default function ThinkHub() {
   // Завершение: вытягиваем summary
   const finish = async () => {
     if (!book) return;
-    setPhase("result");
     setSummary(null);
     setSummaryErr("");
+      setSubmitting(true);
+    
     try {
+        // Отправляем все ответы на сервер
+        for (const qId in answers) {
+          const res = await submitSQAnswer({ 
+            questionId: qId, 
+            chosen: answers[qId] 
+          });
+          setResults(prev => ({
+            ...prev,
+            [qId]: { correct: !!res?.correct }
+          }));
+        }
+
+        // Получаем итоговый результат
       const s = await fetchSQSummary(book.id);
       // нормализуем поля под ожидаемые карточки
       const total =
@@ -155,8 +154,11 @@ export default function ThinkHub() {
       const correct = Number(s?.correct ?? s?.score ?? 0) || 0;
       const points = Number(s?.points ?? correct) || 0;
       setSummary({ total, correct, points });
+        setPhase("result");
     } catch (e) {
       setSummaryErr(e?.message || "Қорытындыны алу мүмкін болмады.");
+      } finally {
+        setSubmitting(false);
     }
   };
 
@@ -299,11 +301,7 @@ export default function ThinkHub() {
                   {current.options.map((opt, i) => {
                     const letter = fromIndex(i);
                     const chosen = answers[current.id] === letter;
-                    const res = results[current.id];
-                    const judged = !!res;
-                    const ok = res?.correct === true && chosen;
-                    const wrong = judged && chosen && !res?.correct;
-
+                    
                     return (
                       <button
                         key={`${current.id}-${letter}`}
@@ -312,8 +310,6 @@ export default function ThinkHub() {
                           chosen
                             ? "border-sky-600 bg-sky-50"
                             : "border-slate-200 hover:border-sky-300 hover:bg-sky-50/40"
-                        } ${wrong ? "border-rose-300 bg-rose-50/50" : ""} ${
-                          ok ? "border-emerald-300 bg-emerald-50/60" : ""
                         }`}
                         disabled={submitting}
                       >
@@ -326,7 +322,6 @@ export default function ThinkHub() {
                           <span className="text-slate-800">
                             <b>{letter})</b> {opt}
                           </span>
-                          {judged && chosen && <Badge ok={!!res?.correct} />}
                         </div>
                       </button>
                     );
@@ -368,7 +363,7 @@ export default function ThinkHub() {
                         : "bg-emerald-600 text-white"
                     }`}
                   >
-                    Тапсыру ✓
+                      {submitting ? "Жауаптар тексерілуде..." : "Тапсыру ✓"}
                   </button>
                 )}
               </div>

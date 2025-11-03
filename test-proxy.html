@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Proxy Test</title>
+</head>
+<body>
+    <h1>Testing /api/dashboard</h1>
+    <button onclick="testApi()">Test API Call</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function testApi() {
+            const result = document.getElementById('result');
+            result.textContent = 'Testing...';
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch('/api/dashboard', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('qm_token')
+                    }
+                });
+                
+                const elapsed = Date.now() - startTime;
+                const data = await response.json();
+                
+                result.textContent = `✅ Success (${elapsed}ms)
+Status: ${response.status}
+Data: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                const elapsed = Date.now() - startTime;
+                result.textContent = `❌ Error (${elapsed}ms)
+${error.message}
+${error.stack}`;
+            }
+        }
+        
+        console.log('Token:', localStorage.getItem('qm_token'));
+    </script>
+</body>
+</html>
+
