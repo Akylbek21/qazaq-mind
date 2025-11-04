@@ -161,7 +161,7 @@ export default function DetailedInsightDashboard() {
     <div className="space-y-6">
       {/* Статистика класса */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <StatCard label="Жалпы балл" value={stats.totalScore} icon="🏆" />
+        <StatCard label="Жалпы ұпай" value={stats.totalScore} icon="🏆" />
         <StatCard label="Орт. IQ" value={fmtPct(stats.avgIQ)} icon="🧠" />
         <StatCard label="Орт. EQ" value={fmtPct(stats.avgEQ)} icon="❤️" />
         <StatCard label="Орт. SQ" value={fmtPct(stats.avgSQ)} icon="👥" />
@@ -177,7 +177,7 @@ export default function DetailedInsightDashboard() {
             onChange={(e) => setSortBy(e.target.value)}
             className="px-3 py-1.5 rounded-lg bg-white border-2 border-slate-300 text-slate-800 text-sm font-medium hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400/20 transition-all"
           >
-            <option value="score">Балл бойынша</option>
+            <option value="score">Ұпай бойынша</option>
             <option value="iq">IQ бойынша</option>
             <option value="eq">EQ бойынша</option>
             <option value="sq">SQ бойынша</option>
@@ -204,7 +204,7 @@ export default function DetailedInsightDashboard() {
           <thead className="bg-gradient-to-r from-slate-50 to-slate-100 border-b-2 border-slate-200">
             <tr>
               <th className="px-4 py-3 text-slate-800 font-bold">Оқушы</th>
-              <th className="px-4 py-3 text-slate-800 font-bold text-center">Балл</th>
+              <th className="px-4 py-3 text-slate-800 font-bold text-center">Ұпай</th>
               <th className="px-4 py-3 text-slate-800 font-bold text-center">IQ</th>
               <th className="px-4 py-3 text-slate-800 font-bold text-center">EQ</th>
               <th className="px-4 py-3 text-slate-800 font-bold text-center">SQ</th>
