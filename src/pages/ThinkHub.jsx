@@ -20,15 +20,6 @@ const Progress = ({ value }) => (
   </div>
 );
 
-const Badge = ({ ok }) => (
-  <span
-    className={`ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
-      ok ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
-    }`}
-  >
-    {ok ? "Дұрыс" : "Бұрыс"}
-  </span>
-);
 
 export default function ThinkHub() {
   // Состояния каталога книг
@@ -149,11 +140,10 @@ export default function ThinkHub() {
 
         // Получаем итоговый результат
       const s = await fetchSQSummary(book.id);
-      // нормализуем поля под ожидаемые карточки
-      const total =
-        Number(s?.total ?? questions.length) || questions.length || 0;
-      const correct = Number(s?.correct ?? s?.score ?? 0) || 0;
-      const points = Number(s?.points ?? correct) || 0;
+      // Используем только данные с сервера, без fallback
+      const total = Number(s?.total) || 0;
+      const correct = Number(s?.correct) || 0;
+      const points = Number(s?.points) || 0;
       setSummary({ total, correct, points });
         setPhase("result");
     } catch (e) {
@@ -186,11 +176,11 @@ export default function ThinkHub() {
         animate={{ opacity: 1, y: 0 }}
         className="text-3xl md:text-4xl font-extrabold text-slate-900"
       >
-        Abai Insight (SQ) — <span className="text-[#f59e0b]">Server-based Quiz</span>
+        Abai Insight (SQ)
       </motion.h1>
       <p className="mt-2 text-slate-600">
-        Барлық сұрақтар мен тексеру — <b>серверден</b>. Таңдаған жауабыңыз әр
-        сұрақта бірден жіберіледі.
+        ThinkHubBala – «Ой орталығы, хаб»
+        Абайдың рухани мұрасы арқылы адамгершілік, рухани және мәдени сана қалыптастыру
       </p>
 
       {/* КАТАЛОГ КНИГ */}
@@ -430,9 +420,6 @@ export default function ThinkHub() {
                   </button>
                 )}
               </div>
-              <p className="mt-2 text-xs text-slate-500">
-                Кеңес: 1–4 пернелерімен жауапты таңдауға, Enter — келесіге өтуге болады.
-              </p>
             </>
           )}
         </div>
@@ -480,45 +467,6 @@ export default function ThinkHub() {
                 <div className="rounded-xl border p-4">
                   <p className="text-slate-500">Ұпай</p>
                   <p className="mt-1 font-semibold">{summary.points}</p>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <h4 className="font-semibold text-slate-900">Таңдалған жауаптар</h4>
-                <div className="mt-3 grid gap-3">
-                  {questions.map((q, idx) => {
-                    const chosen = answers[q.id];
-                    const res = results[q.id];
-                    return (
-                      <div key={q.id} className="rounded-xl border p-4">
-                        <div className="flex items-start gap-2">
-                          <span className="mt-0.5 text-sm font-semibold text-slate-500">
-                            {idx + 1}.
-                          </span>
-                          <div className="flex-1">
-                            <p className="font-medium text-slate-900">
-                              {q.prompt} {res ? <Badge ok={!!res?.correct} /> : null}
-                            </p>
-                            <p className="mt-1 text-sm">
-                              Таңдалған: <b>{chosen ?? "—"}</b>
-                              {q.correctLetter ? (
-                                <>
-                                  {" "}
-                                  | Дұрыс:{" "}
-                                  <b className="text-emerald-700">{q.correctLetter}</b>
-                                </>
-                              ) : null}
-                            </p>
-                            {res?.error && (
-                              <p className="mt-1 text-xs text-rose-600">
-                                {res.error}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
               </div>
             </>
