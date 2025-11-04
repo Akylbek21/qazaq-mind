@@ -32,7 +32,6 @@ const defaultState = {
   // Sleep / DND
   bedtime: "22:30",
   wakeTime: "06:30",
-  eveningDnd: true,
   // Local fallback checklist (тек сервер құлаған кезде көрсетіледі)
   checklist: { morningNoPhone: false, eveningNoPhone: false, walk: false, stretch: false },
 };
@@ -447,18 +446,6 @@ export default function LifeCharge() {
             </div>
           </div>
 
-          <label className="mt-4 inline-flex items-start gap-3 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={st.eveningDnd}
-              onChange={() => setField({ eveningDnd: !st.eveningDnd })}
-              className="mt-1 w-5 h-5 rounded border-2 border-indigo-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
-            />
-            <span className="text-sm text-slate-700 font-medium group-hover:text-indigo-600 transition-colors">
-              Ұйқыға 30 мин қалғанда «телефон ұстамаймын» (жоспар)
-            </span>
-          </label>
-
           <div className="mt-4 text-xs text-slate-500 bg-slate-50 rounded-lg px-4 py-2">
             💡 Ескерту: Бұл тек жоспар/ескерту құралы. Құралдың жүйелік параметрлерін өзгертпейді.
           </div>
@@ -480,9 +467,6 @@ export default function LifeCharge() {
               🔄 Қайта жүктеу
             </button>
           </div>
-          <p className="text-sm text-slate-600 mb-4">
-            Тізім бекэндтен келеді. Белгі қою — бірден серверге жазылады (күн: {todayStr()}).
-          </p>
           {pqErr && (
             <div className="mb-4 text-sm text-rose-600 bg-rose-50 rounded-xl p-3">{pqErr}</div>
           )}
@@ -592,10 +576,158 @@ export default function LifeCharge() {
         </motion.div>
       </div>
 
+      {/* Питание раздел */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+        className="mt-8 rounded-2xl border border-rose-200/70 bg-white/90 backdrop-blur-xl p-6 shadow-[0_10px_30px_rgba(16,37,66,0.08)]"
+      >
+        <h2 className="text-2xl font-extrabold text-slate-900 mb-2 text-center">
+          ЗИЯНДЫ ТАҒАМДАР ТІЗІМІ (оқушыларға арналған)
+        </h2>
+
+        <div className="mt-6 space-y-8">
+          {/* 1. Фастфуд */}
+          <div className="rounded-xl border-2 border-rose-200 bg-rose-50/30 p-5">
+            <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+              🍟 1. Фастфуд өнімдері
+            </h3>
+            <div className="space-y-3">
+              <div className="bg-white rounded-lg p-4 border border-rose-100">
+                <p className="font-semibold text-slate-800 mb-1">Тағам түрі:</p>
+                <p className="text-slate-700 mb-3">Бургер, хот-дог, донер, пицца; Картоп фри, наггетс; Лаваш, майонез қосылған сэндвичтер</p>
+                <p className="font-semibold text-slate-800 mb-1">Зияны:</p>
+                <p className="text-slate-700">Май мен тұз көп, асқорыту жүйесін бұзады; Қуырылған май — бауырға салмақ түсіреді; Артық калория, семіздік қаупі</p>
+              </div>
+              <div className="bg-rose-100 rounded-lg p-3 border-l-4 border-rose-500">
+                <p className="text-slate-800 font-medium italic">💬 "Фастфуд – жылдам, бірақ денсаулығыңа баяу зиян тигізеді."</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Тәттілер */}
+          <div className="rounded-xl border-2 border-amber-200 bg-amber-50/30 p-5">
+            <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+              🍭 2. Тәттілер мен өңделген қант өнімдері
+            </h3>
+            <div className="space-y-3">
+              <div className="bg-white rounded-lg p-4 border border-amber-100">
+                <p className="font-semibold text-slate-800 mb-1">Тағам түрі:</p>
+                <p className="text-slate-700 mb-3">Кәмпит, шоколад батончиктері; Газдалған сусындар (Coca-Cola, Fanta); Десерттер, торттар, кекстер</p>
+                <p className="font-semibold text-slate-800 mb-1">Зияны:</p>
+                <p className="text-slate-700">Қант мөлшері өте жоғары, тіс жегісін тудырады; Қант пен фосфор — сүйек пен бауырға зиян; Энергия береді, бірақ тез шаршататын әсер қалдырады</p>
+              </div>
+              <div className="bg-amber-100 rounded-lg p-3 border-l-4 border-amber-500">
+                <p className="text-slate-800 font-medium italic">💬 "Тәтті – миға қуаныш, бірақ денеге шаршау әкеледі."</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Дайын өнімдер */}
+          <div className="rounded-xl border-2 border-orange-200 bg-orange-50/30 p-5">
+            <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+              🍫 3. Дайын өнімдер мен чипстер
+            </h3>
+            <div className="space-y-3">
+              <div className="bg-white rounded-lg p-4 border border-orange-100">
+                <p className="font-semibold text-slate-800 mb-1">Тағам түрі:</p>
+                <p className="text-slate-700 mb-3">Чипсы, сухарики; Инстант лапша (доширак, ролтон); Попкорн (майлы, тұзды)</p>
+                <p className="font-semibold text-slate-800 mb-1">Зияны:</p>
+                <p className="text-slate-700">Тұзы мен майы көп, жүйкені тітіркендіреді; Консервант пен дәм күшейткіш (E621) көп; Өңделген май — холестерин көтереді</p>
+              </div>
+              <div className="bg-orange-100 rounded-lg p-3 border-l-4 border-orange-500">
+                <p className="text-slate-800 font-medium italic">💬 "Қораптағы дәм – шынайы энергия емес."</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Тәтті сусындар */}
+          <div className="rounded-xl border-2 border-purple-200 bg-purple-50/30 p-5">
+            <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+              🍹 4. Тәтті сусындар мен энергетиктер
+            </h3>
+            <div className="space-y-3">
+              <div className="bg-white rounded-lg p-4 border border-purple-100">
+                <p className="font-semibold text-slate-800 mb-1">Тағам түрі:</p>
+                <p className="text-slate-700 mb-3">Энергетикалық сусындар; Тәтті шайлар, дайын шырындар; Қапталған сүт коктейльдері</p>
+                <p className="font-semibold text-slate-800 mb-1">Зияны:</p>
+                <p className="text-slate-700">Жүрекке, жүйке жүйесіне қауіпті; Қант мөлшері көп, шөлді баспайды; Қант пен бояғыш көп</p>
+              </div>
+              <div className="bg-purple-100 rounded-lg p-3 border-l-4 border-purple-500">
+                <p className="text-slate-800 font-medium italic">💬 "Энергия бөтелкеден емес — ұйқы мен пайдалы астан келеді."</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 5. Өңделген ет */}
+          <div className="rounded-xl border-2 border-red-200 bg-red-50/30 p-5">
+            <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+              🧂 5. Өңделген ет пен тұзды тағамдар
+            </h3>
+            <div className="space-y-3">
+              <div className="bg-white rounded-lg p-4 border border-red-100">
+                <p className="font-semibold text-slate-800 mb-1">Тағам түрі:</p>
+                <p className="text-slate-700 mb-3">Шұжық, сосиска, колбаса; Тұздалған балық, ет өнімдері; Тұзды ірімшік, тұздықтар</p>
+                <p className="font-semibold text-slate-800 mb-1">Зияны:</p>
+                <p className="text-slate-700">Нитраттар мен консерванттар бар; Қан қысымын көтереді; Су балансын бұзады</p>
+              </div>
+              <div className="bg-red-100 rounded-lg p-3 border-l-4 border-red-500">
+                <p className="text-slate-800 font-medium italic">💬 "Тұз – аз болса дәрі, көп болса у."</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 6. Қамырлы тағамдар */}
+          <div className="rounded-xl border-2 border-yellow-200 bg-yellow-50/30 p-5">
+            <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+              🧁 6. Қамырлы, ақ ұннан жасалған тағамдар
+            </h3>
+            <div className="space-y-3">
+              <div className="bg-white rounded-lg p-4 border border-yellow-100">
+                <p className="font-semibold text-slate-800 mb-1">Тағам түрі:</p>
+                <p className="text-slate-700 mb-3">Ақ нан, бәліш, самса; Дүкендегі пісірілген өнімдер; Круассан, пончик</p>
+                <p className="font-semibold text-slate-800 mb-1">Зияны:</p>
+                <p className="text-slate-700">Талшық аз, тез ашықтырады; Қант пен май көп; Қуат аз, калория көп</p>
+              </div>
+              <div className="bg-yellow-100 rounded-lg p-3 border-l-4 border-yellow-500">
+                <p className="text-slate-800 font-medium italic">💬 "Ақ ұн – энергия емес, жалған тоқтық сезімі."</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Идея для платформы */}
+        <div className="mt-8 rounded-xl border-2 border-emerald-200 bg-emerald-50/30 p-5">
+          <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+            💡 Smart Routine платформасына арналған бөлім идеясы:
+          </h3>
+          <div className="bg-white rounded-lg p-4 border border-emerald-100">
+            <h4 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
+              🎮 "Тағамды тап!" ойыны
+            </h4>
+            <ul className="space-y-2 text-slate-700">
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-600 mt-1">•</span>
+                <span>Экранда екі тағам шығады (мысалы: 🍟 фри vs 🍏 алма)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-600 mt-1">•</span>
+                <span>Бала дұрыс таңдау жасайды → ұпай жинайды</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-600 mt-1">•</span>
+                <span>Дұрыс таңдағанда платформа айтып тұрады: <span className="font-semibold italic">"Тамаша! Алма – табиғи энергия көзі!"</span></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </motion.div>
+
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
+        transition={{ delay: 0.8 }}
         className="mt-8 text-xs text-slate-500 bg-slate-50 rounded-xl px-4 py-3"
       >
         💡 Күн ауысқанда — сессия, су және чеклист автоматты түрде нөлденеді.
