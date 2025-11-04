@@ -47,9 +47,31 @@ function extractClaims(token, fallback = {}) {
 }
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(null);
-  const [role, setRole] = useState(null);
-  const [username, setUsername] = useState(null);
+  // Инициализируем синхронно из localStorage при первом рендере
+  const getInitialToken = () => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(LS.token) || null;
+    }
+    return null;
+  };
+  
+  const getInitialRole = () => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(LS.role) || null;
+    }
+    return null;
+  };
+  
+  const getInitialUsername = () => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(LS.username) || null;
+    }
+    return null;
+  };
+
+  const [token, setToken] = useState(getInitialToken);
+  const [role, setRole] = useState(getInitialRole);
+  const [username, setUsername] = useState(getInitialUsername);
   const [user, setUser] = useState(null); // полный профиль (username, role, score и т.д.)
 
   // Загрузить профиль пользователя с API (если есть токен)
@@ -82,20 +104,18 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Инициализация из localStorage
+  // Инициализация: устанавливаем токен в axios и загружаем профиль
   useEffect(() => {
-    const t = localStorage.getItem(LS.token);
-    const r = localStorage.getItem(LS.role);
-    const u = localStorage.getItem(LS.username);
+    const t = token;
     if (t) {
-      setToken(t);
       setAuthToken(t);
       // Попробуем подгрузить профиль
       fetchProfile().catch(() => {});
+    } else {
+      // Если токена нет, убедимся что axios тоже не имеет токена
+      setAuthToken(null);
     }
-    if (r) setRole(r);
-    if (u) setUsername(u);
-  }, []);
+  }, [token]);
 
   // Единая установка состояния после успешной аутентификации
   const handleAuth = (t, possibleRole, possibleUsername) => {
