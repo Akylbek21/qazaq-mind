@@ -2,7 +2,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import ChatModal from "../components/ChatModal";
+import HistoricalChatModal from "../components/HistoricalChatModal";
 import Coin from "../components/Coin";
 
 /* ===== Тұлғалар ===== */
@@ -60,7 +60,7 @@ const personalities = {
 };
 
 /* ===== API Клиент ===== */
-import { fetchTests, fetchQuestions, submitAnswer } from '../api/historical';
+import { fetchTests, fetchQuestions, submitAnswer, fetchPersonality, sendChatMessage, fetchChatHistory } from '../api/historical';
 
 export default function HistoricalQuiz() {
   const navigate = useNavigate();
@@ -73,6 +73,8 @@ export default function HistoricalQuiz() {
   const [result, setResult] = React.useState(null);
   const [chatPersonality, setChatPersonality] = React.useState(null);
   const [showNotConnectedMessage, setShowNotConnectedMessage] = React.useState(false);
+  const [chatHistory, setChatHistory] = React.useState([]);
+  const [loadingHistory, setLoadingHistory] = React.useState(false);
 
   React.useEffect(() => {
     // Загружаем список тестов при монтировании
@@ -359,9 +361,32 @@ export default function HistoricalQuiz() {
                   🔄 Тестті қайта өту
                 </button>
                 <button 
-                  onClick={() => {
-                    setShowNotConnectedMessage(true);
-                    setTimeout(() => setShowNotConnectedMessage(false), 3000);
+                  onClick={async () => {
+                    try {
+                      // Получаем персонажа с бэка
+                      const personalityData = await fetchPersonality();
+                      if (personalityData && personalityData.personality) {
+                        // Загружаем историю чата
+                        setLoadingHistory(true);
+                        const history = await fetchChatHistory(0, 20);
+                        setChatHistory(history?.content || []);
+                        setLoadingHistory(false);
+                        
+                        // Находим данные персонажа
+                        const personalityKey = personalityData.personality;
+                        const personalityInfo = Object.values(personalities).find(p => p.key === personalityKey);
+                        if (personalityInfo) {
+                          setChatPersonality({
+                            ...personalityInfo,
+                            personality: personalityKey
+                          });
+                        }
+                      }
+                    } catch (e) {
+                      console.error("Чатты ашу қатесі:", e);
+                      setShowNotConnectedMessage(true);
+                      setTimeout(() => setShowNotConnectedMessage(false), 3000);
+                    }
                   }} 
                   className="btn btn-primary"
                 >
@@ -382,7 +407,13 @@ export default function HistoricalQuiz() {
       {/* Chat */}
       <AnimatePresence>
         {chatPersonality && (
-          <ChatModal personality={chatPersonality} onClose={() => setChatPersonality(null)} />
+          <HistoricalChatModal 
+            personality={chatPersonality} 
+            onClose={() => {
+              setChatPersonality(null);
+              setChatHistory([]);
+            }} 
+          />
         )}
       </AnimatePresence>
 
