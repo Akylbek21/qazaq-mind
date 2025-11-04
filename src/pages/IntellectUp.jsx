@@ -456,36 +456,6 @@ export default function IntellectUp() {
               </div>
             )}
 
-            <div className="mt-8 grid sm:grid-cols-3 gap-4">
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-all duration-300"
-              >
-                <p className="text-slate-600 text-sm font-medium mb-2">Соңғы нәтиже</p>
-                <p className="text-2xl font-bold text-slate-900">{localScore} / {questions.length}</p>
-              </motion.div>
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="rounded-xl border-2 border-[#1F7A8C]/30 bg-gradient-to-br from-[#1F7A8C]/5 to-[#0ea5a5]/5 p-5 shadow-sm"
-              >
-                <p className="text-[#1F7A8C] text-sm font-bold mb-2">Ең үздік</p>
-                <p className="text-2xl font-bold text-[#1F7A8C]">{Math.max(stats.best ?? 0, localScore)} / {questions.length}</p>
-              </motion.div>
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-all duration-300"
-              >
-                <p className="text-slate-600 text-sm font-medium mb-2">Талпыныс саны</p>
-                <p className="text-2xl font-bold text-slate-900">{stats.attempts ?? 1}</p>
-              </motion.div>
-            </div>
-
             <div className="mt-8 flex flex-wrap gap-3 justify-center">
               <button 
                 onClick={start} 
