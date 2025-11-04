@@ -21,7 +21,7 @@ const ProductsSection = ({onModuleClick}) => {
         pq: "/lifecharge",
     };
 
-    const {role} = useAuth();
+    const {role, isAuthenticated} = useAuth();
 
     // Разрешённые модули по ролям
     const allowedByRole = (r) => {
@@ -128,6 +128,18 @@ const ProductsSection = ({onModuleClick}) => {
 
     const handleCardClick = (p) => {
         const route = MODULE_ROUTES[p.type];
+        
+        // Проверяем, требуется ли авторизация для этого модуля
+        // IQ публичный, остальные требуют авторизации
+        const requiresAuth = p.type !== "iq";
+        
+        // Если модуль требует авторизации и пользователь не авторизован
+        if (requiresAuth && !isAuthenticated) {
+            // Редиректим на логин с сохранением целевого пути
+            navigate("/login", { state: { from: route } });
+            return;
+        }
+        
         if (p.interactive && route) return navigate(route);
         if (p.interactive) onModuleClick?.(p);
     };
@@ -191,8 +203,18 @@ const ProductsSection = ({onModuleClick}) => {
                                         className="relative mt-4 inline-flex items-center text-sm font-semibold text-teal-700">
                                         {allowed ? (
                                             route ? (
-                                                <Link to={route} onClick={(e) => e.stopPropagation()}
-                                                      className="inline-flex items-center">
+                                                <Link 
+                                                    to={route} 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        // Проверяем авторизацию для модулей, кроме IQ
+                                                        const requiresAuth = p.type !== "iq";
+                                                        if (requiresAuth && !isAuthenticated) {
+                                                            e.preventDefault();
+                                                            navigate("/login", { state: { from: route } });
+                                                        }
+                                                    }}
+                                                    className="inline-flex items-center">
                                                     {p.cta || "Тапсырманы орындау"}
                                                     <svg
                                                         className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5"

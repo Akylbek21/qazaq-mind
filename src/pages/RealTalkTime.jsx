@@ -82,7 +82,7 @@ export default function RealTalkTime() {
         transition={{ duration: 0.45 }}
         className="text-3xl md:text-4xl font-extrabold text-slate-900 text-center mb-2"
       >
-        SeLFtALK (EQ)
+        Selftalk (EQ)
       </motion.h1>
       <motion.p 
         initial={{ opacity: 0 }} 

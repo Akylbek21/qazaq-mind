@@ -89,7 +89,7 @@ export default function DetailedInsightDashboard() {
       if (sortBy === "iq") return (b.insight?.iq?.accuracy || 0) - (a.insight?.iq?.accuracy || 0);
       if (sortBy === "eq") return (b.insight?.eq?.avgSentiment || 0) - (a.insight?.eq?.avgSentiment || 0);
       if (sortBy === "sq") return (b.insight?.sq?.accuracy || 0) - (a.insight?.sq?.accuracy || 0);
-      if (sortBy === "pq") return (b.insight?.pq?.percentage || 0) - (a.insight?.pq?.percentage || 0);
+      if (sortBy === "pq") return (b.insight?.pq?.completionRate || 0) - (a.insight?.pq?.completionRate || 0);
       return 0;
     });
 
@@ -104,7 +104,7 @@ export default function DetailedInsightDashboard() {
     const avgIQ = students.reduce((sum, s) => sum + (s.insight?.iq?.accuracy || 0), 0) / total;
     const avgEQ = students.reduce((sum, s) => sum + ((s.insight?.eq?.avgSentiment || 0) * 100), 0) / total;
     const avgSQ = students.reduce((sum, s) => sum + (s.insight?.sq?.accuracy || 0), 0) / total;
-    const avgPQ = students.reduce((sum, s) => sum + (s.insight?.pq?.percentage || 0), 0) / total;
+    const avgPQ = students.reduce((sum, s) => sum + (s.insight?.pq?.completionRate || 0), 0) / total;
 
     return { totalScore, avgIQ, avgEQ, avgSQ, avgPQ };
   }, [students]);
@@ -328,8 +328,8 @@ function StudentRow({ student, idx }) {
       </td>
       <td className="px-4 py-3 text-center">
         <ProgressBadge
-          value={pq.percentage}
-          label={`${pq.tasks || 0}`}
+          value={pq.completionRate}
+          label={`${pq.completed || 0}`}
           active={pq.hasActivity}
         />
       </td>

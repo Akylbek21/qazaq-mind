@@ -183,9 +183,9 @@ function StudentCard({ student }) {
         />
         <MetricCard 
           label="PQ" 
-          value={pq.percentage || 0}
+          value={pq.completionRate || 0}
           hasActivity={pq.hasActivity}
-          total={pq.tasks || 0}
+          total={pq.completed || 0}
         />
       </div>
 
