@@ -169,13 +169,13 @@ export default function DetailedInsightDashboard() {
       </div>
 
       {/* Управление */}
-      <div className="flex flex-wrap items-center gap-4 bg-white/5 rounded-lg p-4">
+      <div className="flex flex-wrap items-center gap-4 bg-white rounded-xl border-2 border-slate-200 p-4 shadow-sm">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-400">Сұрыптау:</span>
+          <span className="text-sm font-semibold text-slate-700">Сұрыптау:</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-1.5 rounded-md bg-white/10 border border-white/20 text-slate-200 text-sm"
+            className="px-3 py-1.5 rounded-lg bg-white border-2 border-slate-300 text-slate-800 text-sm font-medium hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400/20 transition-all"
           >
             <option value="score">Балл бойынша</option>
             <option value="iq">IQ бойынша</option>
@@ -184,33 +184,33 @@ export default function DetailedInsightDashboard() {
             <option value="pq">PQ бойынша</option>
           </select>
         </div>
-        <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-slate-700 font-medium cursor-pointer">
           <input
             type="checkbox"
             checked={filterActive}
             onChange={(e) => setFilterActive(e.target.checked)}
-            className="w-4 h-4 rounded border-white/20"
+            className="w-4 h-4 rounded border-2 border-slate-300 text-slate-600 focus:ring-2 focus:ring-slate-400/20"
           />
           Тек белсенділер
         </label>
-        <div className="ml-auto text-sm text-slate-400">
-          Барлығы: {totalElements} оқушы ({page + 1} / {totalPages})
+        <div className="ml-auto text-sm font-semibold text-slate-600">
+          Барлығы: <span className="text-slate-900">{totalElements}</span> оқушы (<span className="text-slate-900">{page + 1}</span> / <span className="text-slate-900">{totalPages}</span>)
         </div>
       </div>
 
       {/* Таблица студентов */}
-      <div className="overflow-x-auto rounded-lg border border-white/10">
+      <div className="overflow-x-auto rounded-xl border-2 border-slate-200 bg-white shadow-sm">
         <table className="w-full text-left text-sm">
-          <thead className="bg-white/5 border-b border-white/10">
+          <thead className="bg-gradient-to-r from-slate-50 to-slate-100 border-b-2 border-slate-200">
             <tr>
-              <th className="px-4 py-3 text-slate-300 font-semibold">Оқушы</th>
-              <th className="px-4 py-3 text-slate-300 font-semibold text-center">Балл</th>
-              <th className="px-4 py-3 text-slate-300 font-semibold text-center">IQ</th>
-              <th className="px-4 py-3 text-slate-300 font-semibold text-center">EQ</th>
-              <th className="px-4 py-3 text-slate-300 font-semibold text-center">SQ</th>
-              <th className="px-4 py-3 text-slate-300 font-semibold text-center">PQ</th>
-              <th className="px-4 py-3 text-slate-300 font-semibold text-center">Тарих</th>
-              <th className="px-4 py-3 text-slate-300 font-semibold">Статус</th>
+              <th className="px-4 py-3 text-slate-800 font-bold">Оқушы</th>
+              <th className="px-4 py-3 text-slate-800 font-bold text-center">Балл</th>
+              <th className="px-4 py-3 text-slate-800 font-bold text-center">IQ</th>
+              <th className="px-4 py-3 text-slate-800 font-bold text-center">EQ</th>
+              <th className="px-4 py-3 text-slate-800 font-bold text-center">SQ</th>
+              <th className="px-4 py-3 text-slate-800 font-bold text-center">PQ</th>
+              <th className="px-4 py-3 text-slate-800 font-bold text-center">Тарих</th>
+              <th className="px-4 py-3 text-slate-800 font-bold">Статус</th>
             </tr>
           </thead>
           <tbody>
@@ -222,9 +222,9 @@ export default function DetailedInsightDashboard() {
       </div>
 
       {filteredStudents.length === 0 && (
-        <div className="text-center py-12 text-slate-400">
+        <div className="text-center py-12 bg-white rounded-xl border-2 border-slate-200">
           <div className="text-4xl mb-3">🔍</div>
-          <div>Оқушылар табылмады</div>
+          <div className="text-slate-600 font-medium">Оқушылар табылмады</div>
         </div>
       )}
 
@@ -234,17 +234,17 @@ export default function DetailedInsightDashboard() {
           <button
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0 || loading}
-            className="px-4 py-2 rounded-md bg-white/10 border border-white/20 text-slate-200 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
+            className="px-5 py-2.5 rounded-lg bg-white border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 hover:border-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm shadow-sm"
           >
             ⟵ Артқа
           </button>
-          <div className="px-4 py-2 text-slate-300 text-sm font-medium">
+          <div className="px-5 py-2.5 text-slate-700 text-sm font-bold bg-slate-100 rounded-lg">
             {page + 1} / {totalPages}
           </div>
           <button
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1 || loading}
-            className="px-4 py-2 rounded-md bg-white/10 border border-white/20 text-slate-200 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
+            className="px-5 py-2.5 rounded-lg bg-white border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 hover:border-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm shadow-sm"
           >
             Келесі ⟶
           </button>
@@ -255,17 +255,50 @@ export default function DetailedInsightDashboard() {
 }
 
 function StatCard({ label, value, icon }) {
+  // Определяем цвет по иконке
+  let bgColor = "bg-gradient-to-br from-slate-50 to-slate-100";
+  let borderColor = "border-slate-200";
+  let textColor = "text-slate-700";
+  let valueColor = "text-slate-900";
+  
+  if (icon === "🏆") {
+    bgColor = "bg-gradient-to-br from-amber-400 to-orange-500";
+    borderColor = "border-amber-500";
+    textColor = "text-white";
+    valueColor = "text-white";
+  } else if (icon === "🧠") {
+    bgColor = "bg-gradient-to-br from-pink-400 to-rose-500";
+    borderColor = "border-pink-500";
+    textColor = "text-white";
+    valueColor = "text-white";
+  } else if (icon === "❤️") {
+    bgColor = "bg-gradient-to-br from-red-400 to-rose-600";
+    borderColor = "border-red-500";
+    textColor = "text-white";
+    valueColor = "text-white";
+  } else if (icon === "👥") {
+    bgColor = "bg-gradient-to-br from-blue-400 to-indigo-500";
+    borderColor = "border-blue-500";
+    textColor = "text-white";
+    valueColor = "text-white";
+  } else if (icon === "💪") {
+    bgColor = "bg-gradient-to-br from-yellow-400 to-amber-500";
+    borderColor = "border-yellow-500";
+    textColor = "text-white";
+    valueColor = "text-white";
+  }
+  
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-white/5 rounded-lg p-4 border border-white/10"
+      className={`${bgColor} rounded-xl p-4 border-2 ${borderColor} shadow-lg`}
     >
       <div className="flex items-center gap-3">
         <div className="text-3xl">{icon}</div>
         <div>
-          <div className="text-xs text-slate-400">{label}</div>
-          <div className="text-xl font-bold text-slate-100">{value}</div>
+          <div className={`text-xs font-semibold ${textColor} opacity-90`}>{label}</div>
+          <div className={`text-2xl font-bold ${valueColor}`}>{value}</div>
         </div>
       </div>
     </motion.div>
@@ -287,21 +320,21 @@ function StudentRow({ student, idx }) {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: idx * 0.03 }}
-      className="border-b border-white/5 hover:bg-white/5 transition"
+      className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
     >
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center text-sm font-bold text-slate-900">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-sm font-bold text-white shadow-md">
             {username?.charAt(0)?.toUpperCase() || "?"}
           </div>
           <div>
-            <div className="text-slate-200 font-medium">{username}</div>
+            <div className="text-slate-900 font-semibold">{username}</div>
             <div className="text-xs text-slate-500">ID: {student.userId}</div>
           </div>
         </div>
       </td>
       <td className="px-4 py-3 text-center">
-        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-yellow-500/20 text-yellow-300 font-bold text-sm">
+        <span className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold text-sm shadow-md">
           {score || 0}
         </span>
       </td>
@@ -336,24 +369,24 @@ function StudentRow({ student, idx }) {
       <td className="px-4 py-3 text-center">
         {hist.hasActivity ? (
           <div className="text-xs">
-            <div className="text-slate-300">{hist.attemptsCount || 0} рет</div>
+            <div className="text-slate-900 font-semibold">{hist.attemptsCount || 0} рет</div>
             {hist.dominantPersonality && (
-              <div className="text-slate-500">{PERSONALITY_NAMES[hist.dominantPersonality]}</div>
+              <div className="text-slate-600 mt-0.5">{PERSONALITY_NAMES[hist.dominantPersonality]}</div>
             )}
           </div>
         ) : (
-          <span className="text-slate-600">—</span>
+          <span className="text-slate-400">—</span>
         )}
       </td>
       <td className="px-4 py-3">
         {hasActivity ? (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/20 text-green-300 text-xs font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs font-semibold shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-white"></span>
             Белсенді
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-500/20 text-slate-400 text-xs font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-200 text-slate-600 text-xs font-semibold">
+            <span className="w-2 h-2 rounded-full bg-slate-400"></span>
             Белсенді емес
           </span>
         )}
@@ -364,20 +397,36 @@ function StudentRow({ student, idx }) {
 
 function ProgressBadge({ value = 0, label = "", active = false }) {
   if (!active) {
-    return <span className="text-slate-600">—</span>;
+    return <span className="text-slate-400">—</span>;
   }
 
   const v = toNumber(value, 0);
-  const color =
-    v >= 75 ? "text-green-400"
-    : v >= 50 ? "text-yellow-400"
-    : v >= 25 ? "text-orange-400"
-    : "text-red-400";
+  let colorClass = "text-green-600";
+  let bgClass = "bg-green-50";
+  let borderClass = "border-green-300";
+  
+  if (v >= 75) {
+    colorClass = "text-emerald-600";
+    bgClass = "bg-emerald-50";
+    borderClass = "border-emerald-300";
+  } else if (v >= 50) {
+    colorClass = "text-amber-600";
+    bgClass = "bg-amber-50";
+    borderClass = "border-amber-300";
+  } else if (v >= 25) {
+    colorClass = "text-orange-600";
+    bgClass = "bg-orange-50";
+    borderClass = "border-orange-300";
+  } else {
+    colorClass = "text-red-600";
+    bgClass = "bg-red-50";
+    borderClass = "border-red-300";
+  }
 
   return (
-    <div className="text-sm">
-      <div className={`font-bold ${color}`}>{fmtPct(v)}</div>
-      {label && <div className="text-xs text-slate-500">{label}</div>}
+    <div className={`inline-block px-3 py-1.5 rounded-lg border-2 ${borderClass} ${bgClass}`}>
+      <div className={`text-sm font-bold ${colorClass}`}>{fmtPct(v)}</div>
+      {label && <div className="text-xs text-slate-600 mt-0.5">{label}</div>}
     </div>
   );
 }
