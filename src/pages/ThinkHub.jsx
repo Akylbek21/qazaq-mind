@@ -124,13 +124,13 @@ export default function ThinkHub() {
     setSummary(null);
     setSummaryErr("");
       setSubmitting(true);
-    
+
     try {
         // Отправляем все ответы на сервер
         for (const qId in answers) {
-          const res = await submitSQAnswer({ 
-            questionId: qId, 
-            chosen: answers[qId] 
+          const res = await submitSQAnswer({
+            questionId: qId,
+            chosen: answers[qId]
           });
           setResults(prev => ({
             ...prev,
@@ -211,17 +211,17 @@ export default function ThinkHub() {
               >
                 {/* Декоративный градиент при hover */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[#1F7A8C]/5 via-transparent to-[#0ea5a5]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
+
                 <div className="relative">
                   {/* Обложка книги */}
                   <div className="mb-4 flex justify-center">
                     {b.imageUrl ? (
                       <div className="relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-[#1F7A8C]/20 to-[#0ea5a5]/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-                        <img 
-                          src={b.imageUrl} 
-                          alt={b.title} 
-                          className="relative w-full max-w-[200px] h-[280px] rounded-xl object-cover border-2 border-slate-200 shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:scale-105" 
+                        <img
+                          src={b.imageUrl}
+                          alt={b.title}
+                          className="relative w-full max-w-[200px] h-[280px] rounded-xl object-cover border-2 border-slate-200 shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:scale-105"
                         />
                       </div>
                     ) : (
@@ -259,7 +259,7 @@ export default function ThinkHub() {
                       onClick={() => startBook(b)}
                       className="group/btn relative rounded-xl bg-gradient-to-r from-[#1F7A8C] via-[#1aa6b5] to-[#0ea5a5] text-white px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden"
                     >
-                      <span className="relative z-10 flex items-center gap-2">
+                      <span className="relative z-10 flex items-center justify-center gap-2">
                         <span>Тестті бастау</span>
                         <span className="group-hover/btn:translate-x-1 transition-transform duration-300">→</span>
                       </span>
@@ -274,7 +274,7 @@ export default function ThinkHub() {
               </motion.div>
             ))}
             {!loadingBooks && !booksErr && books.length === 0 && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="col-span-full rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/50 p-12 text-center"
@@ -354,7 +354,7 @@ export default function ThinkHub() {
                   {current.options.map((opt, i) => {
                     const letter = fromIndex(i);
                     const chosen = answers[current.id] === letter;
-                    
+
                     return (
                       <button
                         key={`${current.id}-${letter}`}
@@ -475,14 +475,14 @@ export default function ThinkHub() {
       )}
 
       {/* Кнопка возврата на главную */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
         className="mt-8 flex justify-center"
       >
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="inline-flex items-center justify-center rounded-xl px-6 py-3 border-2 border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-300"
         >
           Басты бетке оралу
