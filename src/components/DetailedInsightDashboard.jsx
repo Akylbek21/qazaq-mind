@@ -27,13 +27,19 @@ export default function DetailedInsightDashboard() {
   const [error, setError] = React.useState("");
   const [sortBy, setSortBy] = React.useState("score"); // score | iq | eq | sq | pq
   const [filterActive, setFilterActive] = React.useState(false);
+  const [page, setPage] = React.useState(0);
+  const [totalPages, setTotalPages] = React.useState(1);
+  const [totalElements, setTotalElements] = React.useState(0);
+  const [pageSize] = React.useState(20);
 
   const load = React.useCallback(async () => {
     setError("");
     setLoading(true);
     try {
-      const response = await getStudentInsights({ page: 0, size: 100 });
+      const response = await getStudentInsights(page, pageSize);
       setStudents(response?.content || []);
+      setTotalPages(response?.totalPages || 1);
+      setTotalElements(response?.totalElements || 0);
     } catch (e) {
       console.error("Қате:", e);
       const status = e?.response?.status;
@@ -55,10 +61,12 @@ export default function DetailedInsightDashboard() {
         setError(errorMessage);
       }
       setStudents([]);
+      setTotalPages(1);
+      setTotalElements(0);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, pageSize]);
 
   React.useEffect(() => {
     load();
@@ -186,7 +194,7 @@ export default function DetailedInsightDashboard() {
           Тек белсенділер
         </label>
         <div className="ml-auto text-sm text-slate-400">
-          Барлығы: {filteredStudents.length}
+          Барлығы: {totalElements} оқушы ({page + 1} / {totalPages})
         </div>
       </div>
 
@@ -217,6 +225,29 @@ export default function DetailedInsightDashboard() {
         <div className="text-center py-12 text-slate-400">
           <div className="text-4xl mb-3">🔍</div>
           <div>Оқушылар табылмады</div>
+        </div>
+      )}
+
+      {/* Пагинация */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 pt-4">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0 || loading}
+            className="px-4 py-2 rounded-md bg-white/10 border border-white/20 text-slate-200 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
+          >
+            ⟵ Артқа
+          </button>
+          <div className="px-4 py-2 text-slate-300 text-sm font-medium">
+            {page + 1} / {totalPages}
+          </div>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1 || loading}
+            className="px-4 py-2 rounded-md bg-white/10 border border-white/20 text-slate-200 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
+          >
+            Келесі ⟶
+          </button>
         </div>
       )}
     </div>
