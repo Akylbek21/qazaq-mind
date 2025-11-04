@@ -5,7 +5,7 @@ import AnimatedSection from "./AnimatedSection";
 const TeacherInsightSection = () => {
   const insights = [
     {
-      student: "Әлихан Бөкейханов",
+      student: "Азат Арманұлы",
       analysis:
         "Логикалық тапсырмаларда қиналады, бірақ тарихи тұлғалармен диалогта белсенділік танытты.",
       suggestion:
@@ -14,7 +14,7 @@ const TeacherInsightSection = () => {
       dot: "bg-blue-500",
     },
     {
-      student: "Аружан Сағынтаева",
+      student: "Раяна Бекжанқызы",
       analysis:
         "Соңғы екі күнде SelfTalk модулінде сенімсіздік пен уайымға толы жауаптар қалдырған.",
       suggestion:
@@ -23,7 +23,7 @@ const TeacherInsightSection = () => {
       dot: "bg-rose-500",
     },
     {
-      student: "Санжар Керімбай",
+      student: "Қуаныш Ержанұлы",
       analysis:
         "Danalyq Challenge-де үнемі жоғары нәтиже көрсетіп, қосымша қиын тапсырмалар сұрайды.",
       suggestion:
@@ -107,28 +107,28 @@ const TeacherInsightSection = () => {
                 </div>
 
                 {/* CTA */}
-                <div className="mt-5">
-                  <button
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5
-                               bg-gradient-to-r from-[#1F7A8C] to-[#0ea5a5] text-white font-semibold
-                               shadow-[0_6px_18px_rgba(31,122,140,.25)] hover:shadow-[0_10px_26px_rgba(31,122,140,.32)]
-                               transition-transform duration-200 active:scale-[.98]"
-                  >
-                    Қолдау жоспарын құру
-                    <svg
-                      className="h-4 w-4 opacity-90"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M5 12h14" />
-                      <path d="M12 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
+                {/*<div className="mt-5">*/}
+                {/*  <button*/}
+                {/*    className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5*/}
+                {/*               bg-gradient-to-r from-[#1F7A8C] to-[#0ea5a5] text-white font-semibold*/}
+                {/*               shadow-[0_6px_18px_rgba(31,122,140,.25)] hover:shadow-[0_10px_26px_rgba(31,122,140,.32)]*/}
+                {/*               transition-transform duration-200 active:scale-[.98]"*/}
+                {/*  >*/}
+                {/*    Қолдау жоспарын құру*/}
+                {/*    <svg*/}
+                {/*      className="h-4 w-4 opacity-90"*/}
+                {/*      viewBox="0 0 24 24"*/}
+                {/*      fill="none"*/}
+                {/*      stroke="currentColor"*/}
+                {/*      strokeWidth="2"*/}
+                {/*      strokeLinecap="round"*/}
+                {/*      strokeLinejoin="round"*/}
+                {/*    >*/}
+                {/*      <path d="M5 12h14" />*/}
+                {/*      <path d="M12 5l7 7-7 7" />*/}
+                {/*    </svg>*/}
+                {/*  </button>*/}
+                {/*</div>*/}
               </div>
             </motion.div>
           ))}
